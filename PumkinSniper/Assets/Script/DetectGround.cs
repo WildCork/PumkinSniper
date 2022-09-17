@@ -5,19 +5,19 @@ using UnityEngine;
 
 public class DetectGround : MonoBehaviour
 {
-    [SerializeField] private Player _player;
+    [SerializeField] private CharacterBase _characterBase = null;
 
-    private void Start()
+    private void Awake()
     {
-        _player = transform.parent.GetComponent<Player>();
+        _characterBase = transform.parent.GetComponent<CharacterBase>();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        _player.Materialize();
+        _characterBase.Materialize();
     }
     private void OnTriggerExit2D(Collider2D collision)
     {
-        _player.Penetrate();
+        _characterBase.Penetrate();
     }
 }

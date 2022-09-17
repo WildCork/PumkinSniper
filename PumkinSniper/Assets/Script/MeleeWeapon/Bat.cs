@@ -4,13 +4,5 @@ using UnityEngine;
 
 public class Bat : MeleeBase
 {
-    void Start()
-    {
-        
-    }
 
-    void Update()
-    {
-        
-    }
 }

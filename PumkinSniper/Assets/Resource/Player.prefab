@@ -139,7 +139,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rigidBody: {fileID: 0}
   _circleCollider2D: {fileID: 0}
-  _isDetectGround: 0
+  _isOnGround: 0
 --- !u!1 &233482904372449399
 GameObject:
   m_ObjectHideFlags: 0

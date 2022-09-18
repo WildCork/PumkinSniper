@@ -1,6 +1,6 @@
-# PumkinSniper
-
-
+## GameName: Trick or Trigger
+## ProjectName: PumkinSniper
+## TeamName: WildCork
 
 ## 프로젝트 진행 상황
 

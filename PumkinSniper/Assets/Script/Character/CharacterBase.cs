@@ -1,12 +1,10 @@
+using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterBase : MonoBehaviour
+public class CharacterBase : AllObject
 {
-    private Rigidbody2D _rigidBody;
-    private CircleCollider2D _circleCollider2D;
-
     [Header("Character Ability")]
     [Range(0,10)]
     [SerializeField] private float _moveSpeed = 0;
@@ -15,58 +13,62 @@ public class CharacterBase : MonoBehaviour
 
     [Header("Character Stats")]
     [SerializeField] private float _flyingTime = 0;
-    [SerializeField] private float _canShortJumpTime = 0;
+    [SerializeField] private float _canShortJumpTime = 0.2f;
     [SerializeField] private bool _isJump = false;
     [SerializeField] private bool _isOnGround = false;
     // Start is called before the first frame update
-    private void Awake()
-    {
-        _canShortJumpTime = 0.2f;
-        _rigidBody = GetComponent<Rigidbody2D>();
-        _circleCollider2D = GetComponent<CircleCollider2D>();
-    }
-
+    
     private void Update()
     {
-        if (Input.GetAxis("Horizontal") != 0)
+        Walk(InputController.s_instance._horizontalInput);
+        Jump(InputController.s_instance._jumpUpInput, InputController.s_instance._jumpDownInput);
+        GoDown(InputController.s_instance._goDownInput);
+    }
+
+    private void Walk(float _horizontalInput)
+    {
+        if (!_isOnGround || _horizontalInput == 0)
         {
-            Vector2 preVelocity = _rigidBody.velocity;
-            preVelocity.x = Input.GetAxis("Horizontal") * _moveSpeed;
-            _rigidBody.velocity = preVelocity;
+            return;
+        }
+        Vector2 preVelocity = _rigidbody2D.velocity;
+        preVelocity.x = _horizontalInput * _moveSpeed;
+        _rigidbody2D.velocity = preVelocity;
+    }
+
+    private void Jump(bool _jumpUpInput, bool _jumpDownInput)
+    {
+        if (_isOnGround && _jumpDownInput)
+        {
+            _isJump = true;
+            _rigidbody2D.AddForce(Vector2.up * _jumpPower, ForceMode2D.Impulse);
         }
 
-        if (_isOnGround)
+        if (!_isJump || _flyingTime > _canShortJumpTime)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                _isJump = true;
-                _rigidBody.AddForce(Vector2.up * _jumpPower, ForceMode2D.Impulse);
-            }
-            else if (Input.GetKeyDown(KeyCode.DownArrow))
-            {
-                Penetrate();
-            }
-
-
-            if (_isJump)
-            {
-                _flyingTime += Time.deltaTime;
-            }
+            return;
         }
 
-        if(_isJump && _flyingTime < _canShortJumpTime)
+        _flyingTime += Time.deltaTime;
+        if (_jumpUpInput)
         {
-            if(Input.GetKeyUp(KeyCode.Space))
-            {
-                _rigidBody.velocity *= 0.5f;
-            }
+            _rigidbody2D.AddForce(Vector2.down * _jumpPower * 0.5f, ForceMode2D.Impulse);
         }
+    }
+
+    private void GoDown(bool _goDownInput)
+    {
+        if (!_isOnGround || !_goDownInput)
+        {
+            return;
+        }
+        Penetrate();
     }
 
     public void Penetrate()
     {
         _isOnGround = false;
-        _circleCollider2D.enabled = false;
+        _collider2D.enabled = false;
     }
 
     public void Materialize()
@@ -74,6 +76,6 @@ public class CharacterBase : MonoBehaviour
         _isOnGround = true;
         _flyingTime = 0;
         _isJump = false;
-        _circleCollider2D.enabled = true;
+        _collider2D.enabled = true;
     }
 }

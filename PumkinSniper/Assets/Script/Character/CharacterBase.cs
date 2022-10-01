@@ -8,28 +8,60 @@ using UnityEngine;
 
 public class CharacterBase : AllObject
 {
-    public enum Direction { Left, Right}
+    public enum Direction { Left, Right }
+    [SerializeField] private CameraController _cameraController;
+
     [Header("Character Ability")]
     [Range(0, 10)]
     [SerializeField] private float _walkSpeed = 0;
     [Range(0, 10)]
     [SerializeField] private float _runSpeed = 0;
-    [Range(0,20)]
+    [Range(0, 15)]
     [SerializeField] private float _jumpPower = 0;
 
     [Header("Character Stats")]
-    [SerializeField] private float _canShortJumpTime = 0;
     [SerializeField] private bool _isJump = false;
+    [SerializeField] private bool _isStopJump = false;
     [SerializeField] private bool _isOnGround = false;
-    private float _speed;
-    public Direction _direction
+
+    [Header("Constant Values")]
+    [Range(0, 1)]
+    [SerializeField] private float _canShortJumpTime;
+    [Range(0, 10)]
+    [SerializeField] private float _forceToBlockJump;
+    private float _onJumpTime = 0f;
+    private Vector2 _characterDir;
+
+
+    private bool OnGround
     {
         get
         {
-            return transform.localScale.x > 0 ? Direction.Right : Direction.Left;
+            if (_isOnGround)
+            {
+                _isJump = false;
+                _isStopJump = false;
+                _onJumpTime = 0f;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
-    // Start is called before the first frame update
+
+    private float _dotValue;
+    private const float c_standardToEnterDoor = 0.7f; // 문 입장 허용 노말 벡터 크기
+    public Direction direction
+    {
+        get { return transform.localScale.x > 0 ? Direction.Right : Direction.Left; }
+    }
+    protected override void Init()
+    {
+        //_cameraController = GetComponent<CameraController>(); // 미리 할당 -> 추후 탐색 로직으로 개선
+        _cameraController._character = this;
+    }
 
     private void Update()
     {
@@ -37,88 +69,177 @@ public class CharacterBase : AllObject
         {
             return;
         }
-        Turn(InputController.s_instance._horizontalInput);
-        Move(InputController.s_instance._horizontalInput, InputController.s_instance._runInput);
-        Jump(InputController.s_instance._jumpDownInput);
-        GoDown(InputController.s_instance._goDownInput);
+
+        Control(ref InputController.s_instance._horizontalInput, ref InputController.s_instance._runInput,
+            ref InputController.s_instance._jumpUpInput, ref InputController.s_instance._jumpDownInput,
+            ref InputController.s_instance._descendInput);
     }
 
-    private void Turn(float _horizontalInput)
+    private void Control(ref float horizontalInput, ref bool runInput, ref bool jumpUpInput, ref bool jumpDownInput, ref bool descendInput)
     {
-        if(_horizontalInput == 0)
-        {
-            return;
-        }
-        Vector2 preLocalScale = transform.localScale;
-        preLocalScale.x = (_horizontalInput > 0 ? 1 : -1);
-        transform.localScale = preLocalScale;
-    }
+        Turn(ref horizontalInput);
 
-    private void Move(float _horizontalInput, bool _runInput)
-    {
-        if (_horizontalInput == 0)
-        {
-            return;
-        }
-        else if (!_isOnGround)
-        {
-            return;
-        }
 
-        if (_runInput)
+        if (OnGround)
         {
-            _speed = _runSpeed;
+            if (!runInput)
+                Walk(ref horizontalInput);
+            else
+                Run(ref horizontalInput);
+
+            if (!_isJump && jumpDownInput)
+                Jump();
+
+            if (descendInput)
+                Penetrate(); //Go Down
         }
         else
         {
-            _speed = _walkSpeed;
+            if (_isJump)
+            {
+                _onJumpTime += Time.deltaTime;
+                if (!_isStopJump && jumpUpInput && _onJumpTime < _canShortJumpTime)
+                {
+                    _isStopJump = true;
+                    StopJump();
+                }
+            }
         }
-
-        Vector2 preVelocity = _rigidbody2D.velocity;
-        if (Mathf.Abs(preVelocity.x) < _speed)
-        {
-            preVelocity.x += _horizontalInput;
-        }
-        else if (Mathf.Abs(preVelocity.x) > _speed)
-        {
-            preVelocity.x = (preVelocity.x > 0 ? 1 : -1) * _speed;
-        }
-        _rigidbody2D.velocity = preVelocity;
     }
 
-    private void Jump(bool _jumpDownInput)
+    private void Walk(ref float horizontalInput)
     {
-        if (!_isOnGround || !_jumpDownInput)
+        RenewVelocity(RefreshType.RefreshX, horizontalInput * _walkSpeed);
+    }
+    private void Run(ref float horizontalInput)
+    {
+        RenewVelocity(RefreshType.RefreshX, horizontalInput * _runSpeed);
+    }
+
+    private void Turn(ref float horizontalInput)
+    {
+        Vector2 preLocalScale = transform.localScale;
+        if (horizontalInput != 0)
         {
-            return;
+            preLocalScale.x = (horizontalInput > 0 ? 1 : -1);
         }
-        else if (_isJump)
-        {
-            return;
-        }
+        transform.localScale = preLocalScale;
+    }
+
+    private void Jump()
+    {
+        _isOnGround = false;
         _isJump = true;
+        _isStopJump = false;
         _rigidbody2D.AddForce(Vector2.up * _jumpPower, ForceMode2D.Impulse);
     }
 
-    private void GoDown(bool _goDownInput)
+    private void StopJump()
     {
-        if (!_isOnGround || !_goDownInput)
-        {
-            return;
-        }
-        Penetrate();
+        _rigidbody2D.AddForce(Vector2.down * _forceToBlockJump, ForceMode2D.Impulse); //TODO: 상수 처리 필요
     }
 
     public void Penetrate()
     {
-        _isOnGround = false;
-        _collider2D.enabled = false;
+        _collider2D.isTrigger = true;
     }
 
     public void Materialize()
     {
-        _isOnGround = true;
-        _isJump = false;
-        _collider2D.enabled = true;
+        _collider2D.isTrigger = false;
     }
+    public void RefreshOnGround(bool value)
+    {
+        _isOnGround = value;
+    }
+    private void OnTriggerEnter2D(Collider2D collision)//Door와 겹치는 순간은 InDoor로 분류
+    {
+        if (collision.gameObject.layer == _wallLayer)
+        {
+            Materialize();
+        }
+        else if (collision.gameObject.layer == _doorLayer)
+        {
+            if (!ReferenceEquals(_doorObject, collision.gameObject))
+            {
+                _doorObject = collision.gameObject;
+                _doorScript = _doorObject.GetComponent<Door>();
+            }
+            _characterDir = collision.transform.position - transform.position;
+            _dotValue = Vector2.Dot(_characterDir.normalized, _doorScript._doorDirection);
+            switch (_locationStatus)
+            {
+                case LocationStatus.In:
+                    if (_dotValue < -c_standardToEnterDoor)
+                    {
+                        ChangeLocationStatus(LocationStatus.Door);
+                    }
+                    break;
+                case LocationStatus.Out:
+                    if (_dotValue > c_standardToEnterDoor)
+                    {
+                        ChangeLocationStatus(LocationStatus.Door);
+                    }
+                    break;
+                case LocationStatus.Door:
+                    break;
+                default:
+                    Debug.LogError($"It is no enum state for {_locationStatus}");
+                    break;
+            }
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision) //TODO: check IndoorOutdoor
+    {
+        if (collision.gameObject.layer == _doorLayer)
+        {
+            if (!ReferenceEquals(_doorObject, collision.gameObject))
+            {
+                _doorObject = collision.gameObject;
+                _doorScript = _doorObject.GetComponent<Door>();
+            }
+            _characterDir = collision.transform.position - transform.position;
+            _dotValue = Vector2.Dot(_characterDir.normalized, _doorScript._doorDirection);
+            switch (_locationStatus)
+            {
+                case LocationStatus.Out:
+                    break;
+                case LocationStatus.In:
+                    break;
+                case LocationStatus.Door:
+                    if (_dotValue > c_standardToEnterDoor)
+                    {
+                        ChangeLocationStatus(LocationStatus.Out);
+                    }
+                    else if (_dotValue < -c_standardToEnterDoor)
+                    {
+                        ChangeLocationStatus(LocationStatus.In);
+                    }
+                    break;
+                default:
+                    Debug.LogError($"It is no enum state for {_locationStatus}");
+                    break;
+            }
+        }
+    }
+
+    private enum RefreshType { RefreshX, RefreshY}
+    private void RenewVelocity(RefreshType refreshType ,float value) // velocity의 x 혹은 y 변화는 이 함수만 담당
+    {
+        Vector2 velocity = _rigidbody2D.velocity;
+        switch (refreshType)
+        {
+            case RefreshType.RefreshX:
+                velocity.x = value;
+                break;
+            case RefreshType.RefreshY:
+                velocity.y = value;
+                break;
+            default:
+                break;
+        }
+        _rigidbody2D.velocity = velocity;
+    }
+
 }

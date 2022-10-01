@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FirearmBase : AllObject
+public class FirearmBase : MonoBehaviour 
 {
     [SerializeField] protected int _bulletCnt = 0;
     [SerializeField] protected int _maxBulletCnt = 0;

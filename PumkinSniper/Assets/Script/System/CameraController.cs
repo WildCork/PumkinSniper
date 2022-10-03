@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    [SerializeField] public CharacterBase _character;
+    private CharacterBase _character;
+
     [SerializeField] private float _smoothTime;
     [SerializeField] private float _maxSpeed;
     [SerializeField] private Vector2 _currentPos;
@@ -12,14 +13,9 @@ public class CameraController : MonoBehaviour
     [SerializeField] private Vector2 _velocity;
     [SerializeField] private Vector3 _pos;
 
-    private void OnValidate()
-    {
-        
-    }
     void Start()
     {
-        //TODO: Search Player character
-
+        _character = GameManager.s_instance._character;
     }
 
 

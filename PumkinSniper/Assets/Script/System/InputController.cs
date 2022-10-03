@@ -26,6 +26,7 @@ public class InputController : MonoBehaviour
     public bool _runInput = false;
     public bool _reloadInput = false;
     public bool _getItemInput = false;
+    public bool _enterInput = false;
 
     void Update()
     {

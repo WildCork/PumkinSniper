@@ -4,13 +4,19 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Awake()
+    public static GameManager s_instance = null;
+    public CharacterBase _character = null;
+    private void Awake()
     {
+        if (s_instance)
+        {
+            Destroy(this);
+        }
+        s_instance = this;
+
         Screen.SetResolution(1920, 1080, false);
     }
 
-    // Update is called once per frame
     void Update()
     {
         

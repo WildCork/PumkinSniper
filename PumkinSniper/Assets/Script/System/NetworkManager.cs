@@ -9,10 +9,11 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 {
     [Header("DisconnectPanel")]
     public InputField NickNameInput;
+    public Text NickNameInputHolder;
 
     [Header("LobbyPanel")]
     public GameObject LobbyPanel;
-    public InputField RoomInput;
+    public InputField RoomNameInput;
     public Text WelcomeText;
     public Text LobbyInfoText;
     public Button[] CellBtn;
@@ -26,6 +27,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public Text[] ChatText;
     public InputField ChatInput;
 
+    //CreateRoom 클릭 후 상세 정보 창 생성 -> 정보를 정하고 생성 하기
+
     [Header("ETC")]
     public Text StatusText;
     public PhotonView PV;
@@ -33,7 +36,11 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     List<RoomInfo> myList = new List<RoomInfo>();
     int currentPage = 1, maxPage, multiple;
 
-
+    private void Awake()
+    {
+        Screen.SetResolution(1920, 1080, false);
+        NickNameInput.ActivateInputField();
+    }
 
     #region 방리스트 갱신
     // ◀버튼 -2 , ▶버튼 -1 , 셀 숫자
@@ -86,11 +93,20 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     void Update()
     {
         StatusText.text = PhotonNetwork.NetworkClientState.ToString();
-        LobbyInfoText.text = (PhotonNetwork.CountOfPlayers - PhotonNetwork.CountOfPlayersInRooms) + "로비 / " + PhotonNetwork.CountOfPlayers + "접속";
+        LobbyInfoText.text = (PhotonNetwork.CountOfPlayers - PhotonNetwork.CountOfPlayersInRooms) + " Lobby / " + PhotonNetwork.CountOfPlayers + " Connect";
     }
 
-    public void Connect() => PhotonNetwork.ConnectUsingSettings();
-
+    public void Connect()
+    {
+        if(NickNameInput.text != "")
+        {
+            PhotonNetwork.ConnectUsingSettings();
+        }
+        else
+        {
+            NickNameInputHolder.text = "Please Enter!!";
+        }
+    }
     public override void OnConnectedToMaster() => PhotonNetwork.JoinLobby();
 
     public override void OnJoinedLobby()
@@ -98,7 +114,9 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         LobbyPanel.SetActive(true);
         RoomPanel.SetActive(false);
         PhotonNetwork.LocalPlayer.NickName = NickNameInput.text;
-        WelcomeText.text = PhotonNetwork.LocalPlayer.NickName + "님 환영합니다";
+        RoomNameInput.text = "";
+        RoomNameInput.ActivateInputField();
+        WelcomeText.text = "Welcome " + PhotonNetwork.LocalPlayer.NickName;
         myList.Clear();
     }
 
@@ -113,34 +131,42 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
 
     #region 방
-    public void CreateRoom() => PhotonNetwork.CreateRoom(RoomInput.text == "" ? "Room" + Random.Range(0, 100) : RoomInput.text, new RoomOptions { MaxPlayers = 2 });
-
+    public void CreateRoom()
+    {
+        PhotonNetwork.CreateRoom("Room" + Random.Range(0, 100) + " / " + (RoomNameInput.text == "" ? "Welcome Anyone!!" : RoomNameInput.text), 
+            new RoomOptions { MaxPlayers = 2 });
+    }
     public void JoinRandomRoom() => PhotonNetwork.JoinRandomRoom();
 
     public void LeaveRoom() => PhotonNetwork.LeaveRoom();
+
 
     public override void OnJoinedRoom()
     {
         RoomPanel.SetActive(true);
         RoomRenewal();
         ChatInput.text = "";
-        for (int i = 0; i < ChatText.Length; i++) ChatText[i].text = "";
+        ChatInput.ActivateInputField();
+        for (int i = 0; i < ChatText.Length; i++)
+        {
+            ChatText[i].text = "";
+        }
     }
 
-    public override void OnCreateRoomFailed(short returnCode, string message) { RoomInput.text = ""; CreateRoom(); }
+    public override void OnCreateRoomFailed(short returnCode, string message) { RoomNameInput.text = ""; CreateRoom(); }
 
-    public override void OnJoinRandomFailed(short returnCode, string message) { RoomInput.text = ""; CreateRoom(); }
+    public override void OnJoinRandomFailed(short returnCode, string message) { RoomNameInput.text = ""; CreateRoom(); }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         RoomRenewal();
-        ChatRPC("<color=yellow>" + newPlayer.NickName + "님이 참가하셨습니다</color>");
+        ChatRPC("<color=yellow> Player " + newPlayer.NickName + " enters this room.</color>");
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         RoomRenewal();
-        ChatRPC("<color=yellow>" + otherPlayer.NickName + "님이 퇴장하셨습니다</color>");
+        ChatRPC("<color=yellow> Player " + otherPlayer.NickName + "exits this room.</color>");
     }
 
     void RoomRenewal()
@@ -148,7 +174,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         ListText.text = "";
         for (int i = 0; i < PhotonNetwork.PlayerList.Length; i++)
             ListText.text += PhotonNetwork.PlayerList[i].NickName + ((i + 1 == PhotonNetwork.PlayerList.Length) ? "" : ", ");
-        RoomInfoText.text = PhotonNetwork.CurrentRoom.Name + " / " + PhotonNetwork.CurrentRoom.PlayerCount + "명 / " + PhotonNetwork.CurrentRoom.MaxPlayers + "최대";
+        RoomInfoText.text = PhotonNetwork.CurrentRoom.Name + "\nNow " + PhotonNetwork.CurrentRoom.PlayerCount +
+            " / Max " + PhotonNetwork.CurrentRoom.MaxPlayers;
     }
     #endregion
 
@@ -156,21 +183,27 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     #region 채팅
     public void Send()
     {
-        PV.RPC("ChatRPC", RpcTarget.All, PhotonNetwork.NickName + " : " + ChatInput.text);
-        ChatInput.text = "";
+        if (ChatInput.text != "")
+        {
+            PV.RPC("ChatRPC", RpcTarget.All, PhotonNetwork.NickName + " : " + ChatInput.text);
+            ChatInput.text = "";
+            ChatInput.ActivateInputField();
+        }
     }
 
     [PunRPC] // RPC는 플레이어가 속해있는 방 모든 인원에게 전달한다
     void ChatRPC(string msg)
     {
         bool isInput = false;
-        for (int i = 0; i < ChatText.Length; i++)
+        for (int i = ChatText.Length - 1; i >= 0; i--)
+        {
             if (ChatText[i].text == "")
             {
                 isInput = true;
                 ChatText[i].text = msg;
                 break;
             }
+        }
         if (!isInput) // 꽉차면 한칸씩 위로 올림
         {
             for (int i = 1; i < ChatText.Length; i++) ChatText[i - 1].text = ChatText[i].text;

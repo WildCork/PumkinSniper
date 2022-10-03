@@ -30,7 +30,7 @@ public class CharacterBase : AllObject
     [Range(0, 10)]
     [SerializeField] private float _forceToBlockJump;
     private float _onJumpTime = 0f;
-    private Vector2 _characterDir;
+    private Vector2 _characterDir; // 벡터3 을 벡터2로 변환하기 위해 필요!!
 
 
     private bool OnGround
@@ -52,15 +52,11 @@ public class CharacterBase : AllObject
     }
 
     private float _dotValue;
-    private const float c_standardToEnterDoor = 0.7f; // 문 입장 허용 노말 벡터 크기
+    [Tooltip("문 입장 허용 노말 벡터 크기")]
+    private const float c_standardToEnterDoor = 0.7f;
     public Direction direction
     {
         get { return transform.localScale.x > 0 ? Direction.Right : Direction.Left; }
-    }
-    protected override void Init()
-    {
-        //_cameraController = GetComponent<CameraController>(); // 미리 할당 -> 추후 탐색 로직으로 개선
-        _cameraController._character = this;
     }
 
     private void Update()
@@ -75,17 +71,18 @@ public class CharacterBase : AllObject
             ref InputController.s_instance._descendInput);
     }
 
+    #region Control Part
+
     private void Control(ref float horizontalInput, ref bool runInput, ref bool jumpUpInput, ref bool jumpDownInput, ref bool descendInput)
     {
-        Turn(ref horizontalInput);
-
+        if (!runInput)
+            Walk(ref horizontalInput);
+        else
+            Run(ref horizontalInput);
 
         if (OnGround)
         {
-            if (!runInput)
-                Walk(ref horizontalInput);
-            else
-                Run(ref horizontalInput);
+            Turn(ref horizontalInput);
 
             if (!_isJump && jumpDownInput)
                 Jump();
@@ -116,6 +113,25 @@ public class CharacterBase : AllObject
         RenewVelocity(RefreshType.RefreshX, horizontalInput * _runSpeed);
     }
 
+    private enum RefreshType { RefreshX, RefreshY }
+    private void RenewVelocity(RefreshType refreshType, float value) // velocity의 x 혹은 y 변화는 이 함수만 담당
+    {
+        Vector2 velocity = _rigidbody2D.velocity;
+        switch (refreshType)
+        {
+            case RefreshType.RefreshX:
+                velocity.x = value;
+                break;
+            case RefreshType.RefreshY:
+                velocity.y = value;
+                break;
+            default:
+                break;
+        }
+        _rigidbody2D.velocity = velocity;
+    }
+
+
     private void Turn(ref float horizontalInput)
     {
         Vector2 preLocalScale = transform.localScale;
@@ -138,6 +154,9 @@ public class CharacterBase : AllObject
     {
         _rigidbody2D.AddForce(Vector2.down * _forceToBlockJump, ForceMode2D.Impulse); //TODO: 상수 처리 필요
     }
+    #endregion
+
+    #region Map Collision Part
 
     public void Penetrate()
     {
@@ -224,22 +243,6 @@ public class CharacterBase : AllObject
         }
     }
 
-    private enum RefreshType { RefreshX, RefreshY}
-    private void RenewVelocity(RefreshType refreshType ,float value) // velocity의 x 혹은 y 변화는 이 함수만 담당
-    {
-        Vector2 velocity = _rigidbody2D.velocity;
-        switch (refreshType)
-        {
-            case RefreshType.RefreshX:
-                velocity.x = value;
-                break;
-            case RefreshType.RefreshY:
-                velocity.y = value;
-                break;
-            default:
-                break;
-        }
-        _rigidbody2D.velocity = velocity;
-    }
+    #endregion
 
 }

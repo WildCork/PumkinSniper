@@ -5,11 +5,9 @@ using UnityEngine;
 
 public class DetectFloor : AllObject
 {
-    [SerializeField] private CharacterBase _characterBase = null;
-
-    private void Awake()
+    private CharacterBase _characterBase
     {
-        _characterBase = transform.parent.GetComponent<CharacterBase>();
+        get { return GameManager.s_instance._character; }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -27,6 +25,9 @@ public class DetectFloor : AllObject
                 {
                     _characterBase.RefreshOnGround(true);
                 }
+                break;
+            case LocationStatus.Door:
+                _characterBase.RefreshOnGround(true);
                 break;
             default:
                 break;
@@ -47,6 +48,8 @@ public class DetectFloor : AllObject
                 {
                     _characterBase.RefreshOnGround(false);
                 }
+                break;
+            case LocationStatus.Door:
                 break;
             default:
                 break;

@@ -194,20 +194,16 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     [PunRPC] // RPC는 플레이어가 속해있는 방 모든 인원에게 전달한다
     void ChatRPC(string msg)
     {
-        bool isInput = false;
-        for (int i = ChatText.Length - 1; i >= 0; i--)
+        for (int i = 0; i < ChatText.Length; i++)
         {
-            if (ChatText[i].text == "")
+            if(i < ChatText.Length - 1)
             {
-                isInput = true;
-                ChatText[i].text = msg;
-                break;
+                ChatText[i].text = ChatText[i+1].text;
             }
-        }
-        if (!isInput) // 꽉차면 한칸씩 위로 올림
-        {
-            for (int i = 1; i < ChatText.Length; i++) ChatText[i - 1].text = ChatText[i].text;
-            ChatText[ChatText.Length - 1].text = msg;
+            else
+            {
+                ChatText[i].text = msg;
+            }
         }
     }
     #endregion

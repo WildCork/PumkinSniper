@@ -109,11 +109,29 @@ public class AllObject : MonoBehaviourPunCallbacks
         }
     }
 
-    protected void ChangeLocationStatus(LocationStatus locationStatus)
+    protected void RefreshLocationStatus(LocationStatus locationStatus)
     {
         Vector3 _pos = transform.position;
-        //Debug.Log("ChangeLocationStatus: " + locationStatus);
+        //Debug.Log("RefreshLocationStatus: " + locationStatus);
         transform.position = _pos;
         _locationStatus = locationStatus;
+    }
+
+    protected Vector2 ContactNormalVec(Collider2D collision, Vector2 pos)
+    {
+        return (collision.ClosestPoint(pos) - pos).normalized;
+    }
+    
+    protected bool ReturnTrue_MakeFalse(ref bool condition)
+    {
+        if (condition)
+        {
+            condition = false;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }

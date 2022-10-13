@@ -1,8 +1,7 @@
 /PumkinSniper/.vs
-/PumkinSniper/UserSettings/Layouts
-/PumkinSniper/obj/Debug
-/PumkinSniper/Assembly-CSharp.csproj
+/PumkinSniper/obj
 /PumkinSniper/Temp
 /PumkinSniper/Logs
 /PumkinSniper/Library
+/PumkinSniper/Packages
 /SymbolicLink

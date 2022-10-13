@@ -14,7 +14,11 @@ public class Map : MonoBehaviour
     [SerializeField] private Tilemap[] _outCoverTilemaps;
 
     [SerializeField] private WaitForSeconds _renewSeconds = new WaitForSeconds(0.05f);
-    [SerializeField] private CharacterBase _characterBase = null;
+
+    private CharacterBase _characterBase
+    {
+        get { return GameManager.s_instance._character; }
+    }
 
     [SerializeField] private float _alphaChangeValue = 0.1f;
 
@@ -23,8 +27,6 @@ public class Map : MonoBehaviour
     // Start is called before the first frame update
     private void Awake()
     {
-        _characterBase = GameManager.s_instance._character;
-
         Define(ref _allMap, transform.Find("AllMap"));
         Define(ref _covers,transform.Find( "Covers"));
         Define(ref _walls, transform.Find("Walls"));
@@ -44,7 +46,7 @@ public class Map : MonoBehaviour
     {
         if ((t = define) == null)
         {
-            Debug.LogError($"This {define} is null!!");
+            Debug.LogError($"This {define} object is null!!");
         }
     }
 

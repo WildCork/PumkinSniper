@@ -13,6 +13,8 @@ public class CharacterBase : AllObject
 
     [Header("Character Ability")]
     [Range(0, 10)]
+    [SerializeField] private float _sneakSpeed = 0;
+    [Range(0, 10)]
     [SerializeField] private float _walkSpeed = 0;
     [Range(0, 10)]
     [SerializeField] private float _runSpeed = 0;
@@ -20,36 +22,39 @@ public class CharacterBase : AllObject
     [SerializeField] private float _jumpPower = 0;
 
     [Header("Character Stats")]
+    [SerializeField] private int _hp = 100;
+    [SerializeField] private int _maxHp = 100;
     [SerializeField] private bool _isJump = false;
     [SerializeField] private bool _isStopJump = false;
     [SerializeField] private bool _isOnGround = false;
-
-    [Header("Constant Values")]
     [Range(0, 1)]
     [SerializeField] private float _canShortJumpTime;
     [Range(0, 10)]
     [SerializeField] private float _forceToBlockJump;
-    private float _onJumpTime = 0f;
-    private Vector2 _characterDir; // 벡터3 을 벡터2로 변환하기 위해 필요!!
+    [SerializeField] private float _onJumpTime = 0f;
 
-
-    private bool OnGround
+    public int HP
     {
-        get
+        get { return _hp; }
+        set 
         {
-            if (_isOnGround)
+            Debug.Log(_hp);
+            if (value > _maxHp)
             {
-                _isJump = false;
-                _isStopJump = false;
-                _onJumpTime = 0f;
-                return true;
+                _hp = _maxHp;
+            }
+            else if(value <= 0)
+            {
+                _hp = 0;
+                Die();
             }
             else
             {
-                return false;
+                _hp = value;
             }
         }
     }
+
 
     private float _dotValue;
     [Tooltip("문 입장 허용 노말 벡터 크기")]
@@ -59,78 +64,60 @@ public class CharacterBase : AllObject
         get { return transform.localScale.x > 0 ? Direction.Right : Direction.Left; }
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (!_photonView.IsMine)
         {
             return;
         }
 
-        Control(ref InputController.s_instance._horizontalInput, ref InputController.s_instance._runInput,
-            ref InputController.s_instance._jumpUpInput, ref InputController.s_instance._jumpDownInput,
-            ref InputController.s_instance._descendInput);
-    }
-
-    #region Control Part
-
-    private void Control(ref float horizontalInput, ref bool runInput, ref bool jumpUpInput, ref bool jumpDownInput, ref bool descendInput)
-    {
-        if (!runInput)
-            Walk(ref horizontalInput);
-        else
-            Run(ref horizontalInput);
-
-        if (OnGround)
+        Move(ref InputController.s_instance._horizontal, ref InputController.s_instance._walk);
+        if (_isOnGround)
         {
-            Turn(ref horizontalInput);
-
-            if (!_isJump && jumpDownInput)
+            Turn(ref InputController.s_instance._horizontal);
+            if (ReturnTrue_MakeFalse(ref InputController.s_instance._descend))
+            {
+                Descend();
+            }
+            if (!_isJump && ReturnTrue_MakeFalse(ref InputController.s_instance._jumpDown))
+            {
+                InputController.s_instance._jumpUp = false;
                 Jump();
-
-            if (descendInput)
-                Penetrate(); //Go Down
+            }
         }
         else
         {
-            if (_isJump)
+            if (_isJump && !_isStopJump)
             {
                 _onJumpTime += Time.deltaTime;
-                if (!_isStopJump && jumpUpInput && _onJumpTime < _canShortJumpTime)
+                if (_onJumpTime < _canShortJumpTime && ReturnTrue_MakeFalse(ref InputController.s_instance._jumpUp))
                 {
-                    _isStopJump = true;
                     StopJump();
                 }
             }
         }
     }
 
+
+    #region Non Physic Part
+
+
+    private void Move(ref float horizontalInput, ref bool walkInput)
+    {
+        if (walkInput)
+            Walk(ref horizontalInput);
+        else
+            Run(ref horizontalInput);
+    }
+
     private void Walk(ref float horizontalInput)
     {
-        RenewVelocity(RefreshType.RefreshX, horizontalInput * _walkSpeed);
+        transform.Translate(Vector2.right * horizontalInput * _walkSpeed * Time.deltaTime);
     }
     private void Run(ref float horizontalInput)
     {
-        RenewVelocity(RefreshType.RefreshX, horizontalInput * _runSpeed);
+        transform.Translate(Vector2.right * horizontalInput * _runSpeed * Time.deltaTime);
     }
-
-    private enum RefreshType { RefreshX, RefreshY }
-    private void RenewVelocity(RefreshType refreshType, float value) // velocity의 x 혹은 y 변화는 이 함수만 담당
-    {
-        Vector2 velocity = _rigidbody2D.velocity;
-        switch (refreshType)
-        {
-            case RefreshType.RefreshX:
-                velocity.x = value;
-                break;
-            case RefreshType.RefreshY:
-                velocity.y = value;
-                break;
-            default:
-                break;
-        }
-        _rigidbody2D.velocity = velocity;
-    }
-
 
     private void Turn(ref float horizontalInput)
     {
@@ -141,7 +128,9 @@ public class CharacterBase : AllObject
         }
         transform.localScale = preLocalScale;
     }
+    #endregion
 
+    #region Physics Part
     private void Jump()
     {
         _isOnGround = false;
@@ -152,12 +141,25 @@ public class CharacterBase : AllObject
 
     private void StopJump()
     {
-        _rigidbody2D.AddForce(Vector2.down * _forceToBlockJump, ForceMode2D.Impulse); //TODO: 상수 처리 필요
+        _isStopJump = true;
+        _rigidbody2D.AddForce(Vector2.down * _forceToBlockJump, ForceMode2D.Impulse);
+    }
+
+    #endregion
+
+    #region Special Event
+    private void Die()
+    {
+
     }
     #endregion
 
-    #region Map Collision Part
+    #region Penetrate, Materialize
 
+    private void Descend()
+    {
+        Penetrate();
+    }
     public void Penetrate()
     {
         _collider2D.isTrigger = true;
@@ -167,9 +169,54 @@ public class CharacterBase : AllObject
     {
         _collider2D.isTrigger = false;
     }
-    public void RefreshOnGround(bool value)
+    #endregion
+
+    #region Collision, Trigger
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        _isOnGround = value;
+        switch (_locationStatus)
+        {
+            case LocationStatus.Out:
+                if (collision.gameObject.layer == _outLayer)
+                {
+                    RefreshOnGround(true);
+                }
+                break;
+            case LocationStatus.In:
+                if (collision.gameObject.layer == _inLayer)
+                {
+                    RefreshOnGround(true);
+                }
+                break;
+            case LocationStatus.Door:
+                RefreshOnGround(true);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        switch (_locationStatus)
+        {
+            case LocationStatus.Out:
+                if (collision.gameObject.layer == _outLayer)
+                {
+                    RefreshOnGround(false);
+                }
+                break;
+            case LocationStatus.In:
+                if (collision.gameObject.layer == _inLayer)
+                {
+                    RefreshOnGround(false);
+                }
+                break;
+            case LocationStatus.Door:
+                break;
+            default:
+                break;
+        }
     }
     private void OnTriggerEnter2D(Collider2D collision)//Door와 겹치는 순간은 InDoor로 분류
     {
@@ -184,20 +231,19 @@ public class CharacterBase : AllObject
                 _doorObject = collision.gameObject;
                 _doorScript = _doorObject.GetComponent<Door>();
             }
-            _characterDir = collision.transform.position - transform.position;
-            _dotValue = Vector2.Dot(_characterDir.normalized, _doorScript._doorDirection);
+            _dotValue = Vector2.Dot(ContactNormalVec(collision, transform.position), _doorScript._doorDirection);
             switch (_locationStatus)
             {
                 case LocationStatus.In:
                     if (_dotValue < -c_standardToEnterDoor)
                     {
-                        ChangeLocationStatus(LocationStatus.Door);
+                        RefreshLocationStatus(LocationStatus.Door);
                     }
                     break;
                 case LocationStatus.Out:
                     if (_dotValue > c_standardToEnterDoor)
                     {
-                        ChangeLocationStatus(LocationStatus.Door);
+                        RefreshLocationStatus(LocationStatus.Door);
                     }
                     break;
                 case LocationStatus.Door:
@@ -218,8 +264,7 @@ public class CharacterBase : AllObject
                 _doorObject = collision.gameObject;
                 _doorScript = _doorObject.GetComponent<Door>();
             }
-            _characterDir = collision.transform.position - transform.position;
-            _dotValue = Vector2.Dot(_characterDir.normalized, _doorScript._doorDirection);
+            _dotValue = Vector2.Dot(ContactNormalVec(collision, transform.position), _doorScript._doorDirection);
             switch (_locationStatus)
             {
                 case LocationStatus.Out:
@@ -229,17 +274,49 @@ public class CharacterBase : AllObject
                 case LocationStatus.Door:
                     if (_dotValue > c_standardToEnterDoor)
                     {
-                        ChangeLocationStatus(LocationStatus.Out);
+                        RefreshLocationStatus(LocationStatus.Out);
                     }
                     else if (_dotValue < -c_standardToEnterDoor)
                     {
-                        ChangeLocationStatus(LocationStatus.In);
+                        RefreshLocationStatus(LocationStatus.In);
                     }
                     break;
                 default:
                     Debug.LogError($"It is no enum state for {_locationStatus}");
                     break;
             }
+        }
+        else
+        {
+            switch (_locationStatus)
+            {
+                case LocationStatus.Out:
+                    if (collision.gameObject.layer == _outLayer)
+                    {
+                        Materialize();
+                    }
+                    break;
+                case LocationStatus.In:
+                    if (collision.gameObject.layer == _inLayer)
+                    {
+                        Materialize();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    public void RefreshOnGround(bool value)
+    {
+        _isOnGround = value;
+        if(_isOnGround)
+        {
+            InputController.s_instance._jumpUp = false;
+            _isJump = false;
+            _isStopJump = false;
+            _onJumpTime = 0f;
         }
     }
 

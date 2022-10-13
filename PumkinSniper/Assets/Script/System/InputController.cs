@@ -16,30 +16,47 @@ public class InputController : MonoBehaviour
         s_instance = this;
     }
 
-    public float _horizontalInput = 0;
-    public bool _descendInput = false;
-    public bool _tabInput = false;
+    public float _horizontal = 0;
+    public bool _descend = false;
 
-    public bool _jumpDownInput = false;
-    public bool _jumpUpInput = false;
-    public bool _shootInput = false;
-    public bool _runInput = false;
-    public bool _reloadInput = false;
-    public bool _getItemInput = false;
-    public bool _enterInput = false;
+    public bool _shoot = false;
+    public bool _grenadeDown = false;
+    public bool _jumpDown = false;
+    public bool _jumpUp = false;
 
-    void Update()
+    //public bool _run = false;
+    public bool _walk = false;
+
+    public bool _tab = false;
+
+    private  KeyCode _tabCode = KeyCode.Tab;
+    private  string _horizontalString = "Horizontal";
+    private  KeyCode _descendCode = KeyCode.DownArrow;
+
+    private  KeyCode _shootCode = KeyCode.Z;
+    private  KeyCode _jumpCode = KeyCode.X;
+    private  KeyCode _grenadeCode = KeyCode.C;
+    //private  KeyCode _runCode = KeyCode.LeftShift;
+
+    private  KeyCode _walkCode = KeyCode.LeftControl;
+
+    private void Update()
     {
-        _horizontalInput = Input.GetAxisRaw("Horizontal");
-        _descendInput = Input.GetKeyDown(KeyCode.S);
-        _tabInput = Input.GetKey(KeyCode.Tab);
+        _horizontal = Input.GetAxisRaw(_horizontalString);
 
-        _shootInput = Input.GetKey(KeyCode.J);
-        _jumpUpInput = Input.GetKeyUp(KeyCode.K);
-        _jumpDownInput = Input.GetKeyDown(KeyCode.K);
-        _runInput = Input.GetKey(KeyCode.L);
+        if(!_descend)
+            _descend = Input.GetKeyDown(_descendCode);
 
-        _reloadInput = Input.GetKeyUp(KeyCode.R);
-        _getItemInput = Input.GetKeyDown(KeyCode.F);
+        _shoot = Input.GetKey(_shootCode);
+        _grenadeDown = Input.GetKeyDown(_grenadeCode);
+
+        if (!_jumpUp)
+            _jumpUp = Input.GetKeyUp(_jumpCode);
+        if (!_jumpDown)
+            _jumpDown = Input.GetKeyDown(_jumpCode);
+
+        _walk = Input.GetKey(_walkCode);
+
+        _tab = Input.GetKey(_tabCode);
     }
 }

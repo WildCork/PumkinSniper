@@ -6,6 +6,9 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager s_instance = null;
     public CharacterBase _character = null;
+
+    [SerializeField] private InputController _inputController = null;
+    [SerializeField] private Map _map = null;
     private void Awake()
     {
         if (s_instance)
@@ -17,8 +20,8 @@ public class GameManager : MonoBehaviour
         Screen.SetResolution(1920, 1080, false);
     }
 
-    void Update()
+    public void RenewMap()
     {
-        
+        _map.RenewMap();
     }
 }

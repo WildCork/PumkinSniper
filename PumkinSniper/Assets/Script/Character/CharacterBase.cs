@@ -10,6 +10,7 @@ public class CharacterBase : AllObject
 {
     public enum Direction { Left, Right }
     [SerializeField] private CameraController _cameraController;
+    [SerializeField] private DetectGround m_detectGround;
 
     [Header("Character Ability")]
     [Range(0, 10)]
@@ -154,84 +155,18 @@ public class CharacterBase : AllObject
     }
     #endregion
 
-    #region Penetrate, Materialize
 
     private void Descend()
     {
-        Penetrate();
-    }
-    public void Penetrate()
-    {
-        _collider2D.isTrigger = true;
+        //Penetrate();
     }
 
-    public void Materialize()
-    {
-        _collider2D.isTrigger = false;
-    }
-    #endregion
-
-    #region Collision, Trigger
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        switch (_locationStatus)
-        {
-            case LocationStatus.Out:
-                if (collision.gameObject.layer == _outLayer)
-                {
-                    RefreshOnGround(true);
-                }
-                break;
-            case LocationStatus.In:
-                if (collision.gameObject.layer == _inLayer)
-                {
-                    RefreshOnGround(true);
-                }
-                break;
-            case LocationStatus.Door:
-                RefreshOnGround(true);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        switch (_locationStatus)
-        {
-            case LocationStatus.Out:
-                if (collision.gameObject.layer == _outLayer)
-                {
-                    RefreshOnGround(false);
-                }
-                break;
-            case LocationStatus.In:
-                if (collision.gameObject.layer == _inLayer)
-                {
-                    RefreshOnGround(false);
-                }
-                break;
-            case LocationStatus.Door:
-                break;
-            default:
-                break;
-        }
-    }
+    #region Trigger Door
     private void OnTriggerEnter2D(Collider2D collision)//Door와 겹치는 순간은 InDoor로 분류
     {
-        if (collision.gameObject.layer == _wallLayer)
+        if (collision.gameObject.layer == _doorLayer)
         {
-            Materialize();
-        }
-        else if (collision.gameObject.layer == _doorLayer)
-        {
-            if (!ReferenceEquals(_doorObject, collision.gameObject))
-            {
-                _doorObject = collision.gameObject;
-                _doorScript = _doorObject.GetComponent<Door>();
-            }
-            _dotValue = Vector2.Dot(ContactNormalVec(collision, transform.position), _doorScript._doorDirection);
+            _dotValue = Vector2.Dot(ContactNormalVec(collision, transform.position), collision.GetComponent<Door>()._doorDirection);
             switch (_locationStatus)
             {
                 case LocationStatus.In:
@@ -259,17 +194,12 @@ public class CharacterBase : AllObject
     {
         if (collision.gameObject.layer == _doorLayer)
         {
-            if (!ReferenceEquals(_doorObject, collision.gameObject))
-            {
-                _doorObject = collision.gameObject;
-                _doorScript = _doorObject.GetComponent<Door>();
-            }
-            _dotValue = Vector2.Dot(ContactNormalVec(collision, transform.position), _doorScript._doorDirection);
+            _dotValue = Vector2.Dot(ContactNormalVec(collision, transform.position), collision.GetComponent<Door>()._doorDirection);
             switch (_locationStatus)
             {
-                case LocationStatus.Out:
-                    break;
                 case LocationStatus.In:
+                    break;
+                case LocationStatus.Out:
                     break;
                 case LocationStatus.Door:
                     if (_dotValue > c_standardToEnterDoor)
@@ -283,26 +213,6 @@ public class CharacterBase : AllObject
                     break;
                 default:
                     Debug.LogError($"It is no enum state for {_locationStatus}");
-                    break;
-            }
-        }
-        else
-        {
-            switch (_locationStatus)
-            {
-                case LocationStatus.Out:
-                    if (collision.gameObject.layer == _outLayer)
-                    {
-                        Materialize();
-                    }
-                    break;
-                case LocationStatus.In:
-                    if (collision.gameObject.layer == _inLayer)
-                    {
-                        Materialize();
-                    }
-                    break;
-                default:
                     break;
             }
         }

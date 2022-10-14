@@ -77,12 +77,8 @@ public class AllObject : MonoBehaviourPunCallbacks
         _doorLayer = LayerMask.NameToLayer("Door");
         _wallLayer = LayerMask.NameToLayer("Wall");
 
-        Init();
         ConfirmNullReference();
     }
-
-    protected virtual void Init() { }
-
 
     private void ConfirmNullReference()
     {
@@ -111,12 +107,9 @@ public class AllObject : MonoBehaviourPunCallbacks
 
     protected void RefreshLocationStatus(LocationStatus locationStatus)
     {
-        Vector3 _pos = transform.position;
-        //Debug.Log("RefreshLocationStatus: " + locationStatus);
-        transform.position = _pos;
         _locationStatus = locationStatus;
+        GameManager.s_instance.RenewMap();
     }
-
     protected Vector2 ContactNormalVec(Collider2D collision, Vector2 pos)
     {
         return (collision.ClosestPoint(pos) - pos).normalized;

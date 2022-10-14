@@ -40,23 +40,21 @@ public class InputController : MonoBehaviour
 
     private  KeyCode _walkCode = KeyCode.LeftControl;
 
+
     private void Update()
     {
         _horizontal = Input.GetAxisRaw(_horizontalString);
-
-        if(!_descend)
-            _descend = Input.GetKeyDown(_descendCode);
-
         _shoot = Input.GetKey(_shootCode);
-        _grenadeDown = Input.GetKeyDown(_grenadeCode);
+        _walk = Input.GetKey(_walkCode);
+        _tab = Input.GetKey(_tabCode);
 
+        if (!_grenadeDown)
+            _grenadeDown = Input.GetKeyDown(_grenadeCode);
+        if (!_descend)
+            _descend = Input.GetKeyDown(_descendCode);
         if (!_jumpUp)
             _jumpUp = Input.GetKeyUp(_jumpCode);
         if (!_jumpDown)
             _jumpDown = Input.GetKeyDown(_jumpCode);
-
-        _walk = Input.GetKey(_walkCode);
-
-        _tab = Input.GetKey(_tabCode);
     }
 }

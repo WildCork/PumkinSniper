@@ -1,17 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static AllObject;
 
 public class Map : MonoBehaviour
 {
-    [SerializeField] private Transform _allMap = null;
     [SerializeField] private Transform _covers = null;
-    [SerializeField] private Transform _walls = null;
-    [SerializeField] private Transform _doors = null;
-    [SerializeField] private Tilemap[] _allMapTilemaps;
-    [SerializeField] private Tilemap[] _inCoverTilemaps;
-    [SerializeField] private Tilemap[] _outCoverTilemaps;
+    [SerializeField] private HashSet<SpriteRenderer> _inCovers = new();
+    [SerializeField] private HashSet<SpriteRenderer> _outCovers = new();
 
     [SerializeField] private WaitForSeconds _renewSeconds = new WaitForSeconds(0.05f);
 
@@ -27,46 +25,45 @@ public class Map : MonoBehaviour
     // Start is called before the first frame update
     private void Awake()
     {
-        Define(ref _allMap, transform.Find("AllMap"));
-        Define(ref _covers,transform.Find( "Covers"));
-        Define(ref _walls, transform.Find("Walls"));
-        Define(ref _doors, transform.Find("Doors"));
-
-        Define(ref _allMapTilemaps ,_allMap.GetComponentsInChildren<Tilemap>());
-        Define(ref _inCoverTilemaps,_covers.Find("InCover").GetComponentsInChildren<Tilemap>());
-        Define(ref _outCoverTilemaps,_covers.Find("OutCover").GetComponentsInChildren<Tilemap>());
-    }
-
-    private void Start()
-    {
-        StartCoroutine(RenewMap());
-    }
-
-    private void Define<T>(ref T t, T define)
-    {
-        if ((t = define) == null)
+        _covers = transform.Find("Covers");
+        foreach (Transform cover in _covers)
         {
-            Debug.LogError($"This {define} object is null!!");
+            if (cover.name.Contains("InCover"))
+            {
+                _inCovers.Add(cover.Find("Cover").gameObject.GetComponent<SpriteRenderer>());
+            }
+            else if (cover.name.Contains("OutCover"))
+            {
+                _outCovers.Add(cover.Find("Cover").gameObject.GetComponent<SpriteRenderer>());
+            }
         }
     }
 
-    IEnumerator RenewMap()
+    public void RenewMap()
     {
-        while (true)
+        StopAllCoroutines();
+        StartCoroutine(RefreshMap());
+    }
+
+
+    public IEnumerator RefreshMap()
+    {
+        bool isEnd1 = false, isEnd2 = false;
+        while (!(isEnd1 && isEnd2))
         {
             switch (_characterBase._locationStatus)
             {
-                case AllObject.LocationStatus.In:
-                    RenewColor(RenewColorType.Transparent, ref _inCoverTilemaps);
-                    RenewColor(RenewColorType.Opaque, ref _outCoverTilemaps);
+                case LocationStatus.In:
+                    if (!isEnd1) isEnd1 = RefreshColor(ref _inCovers, false);
+                    if (!isEnd2) isEnd2 = RefreshColor(ref _outCovers, true);
                     break;
-                case AllObject.LocationStatus.Out:
-                    RenewColor(RenewColorType.Opaque, ref _inCoverTilemaps);
-                    RenewColor(RenewColorType.Transparent, ref _outCoverTilemaps);
+                case LocationStatus.Out:
+                    if (!isEnd1) isEnd1 = RefreshColor(ref _inCovers, true);
+                    if (!isEnd2) isEnd2 = RefreshColor(ref _outCovers, false);
                     break;
-                case AllObject.LocationStatus.Door:
-                    RenewColor(RenewColorType.Transparent, ref _inCoverTilemaps);
-                    RenewColor(RenewColorType.Transparent, ref _outCoverTilemaps);
+                case LocationStatus.Door:
+                    if (!isEnd1) isEnd1 = RefreshColor(ref _inCovers, false);
+                    if (!isEnd2) isEnd2 = RefreshColor(ref _outCovers, false);
                     break;
                 default:
                     break;
@@ -75,35 +72,35 @@ public class Map : MonoBehaviour
         }
     }
 
-    private enum RenewColorType { Opaque, Transparent }
-    private void RenewColor(RenewColorType renewType, ref Tilemap[] tiles)
+    private bool RefreshColor(ref HashSet<SpriteRenderer> spriteSet, bool isOpaque)
     {
-        switch (renewType)
+        bool isEnd = true;
+        if (isOpaque)
         {
-            case RenewColorType.Opaque:
-                for (int i = 0; i < tiles.Length; i++)
+            foreach (SpriteRenderer renderer in spriteSet)
+            {
+                if(renderer.color.a < 1)
                 {
-                    if (tiles[i].color.a < 1)
-                    {
-                        _color = tiles[i].color;
-                        _color.a += _alphaChangeValue;
-                        tiles[i].color = _color;
-                    }
+                    _color = renderer.color;
+                    _color.a += _alphaChangeValue;
+                    renderer.color = _color;
+                    isEnd = false;
                 }
-                break;
-            case RenewColorType.Transparent:
-                for (int i = 0; i < tiles.Length; i++)
-                {
-                    if (tiles[i].color.a > 0)
-                    {
-                        _color = tiles[i].color;
-                        _color.a -= _alphaChangeValue;
-                        tiles[i].color = _color;
-                    }
-                }
-                break;
-            default:
-                break;
+            }
         }
+        else
+        {
+            foreach (SpriteRenderer renderer in spriteSet)
+            {
+                if (renderer.color.a > 0)
+                {
+                    _color = renderer.color;
+                    _color.a -= _alphaChangeValue;
+                    renderer.color = _color;
+                    isEnd = false;
+                }
+            }
+        }
+        return isEnd;
     }
 }

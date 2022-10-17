@@ -6,7 +6,13 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager s_instance = null;
     public CharacterBase _character = null;
-    
+
+    public Transform _bulletStorage = null;
+
+    public List<Bullet> _pistolBullets = null;
+    public List<Bullet> _machineGunBullets = null;
+    public List<Bullet> _shotGunBullets = null;
+
     [Header("Layer")]
     public LayerMask _inLayer = -1;    //In
     public LayerMask _outLayer = -1;   //Out
@@ -18,13 +24,10 @@ public class GameManager : MonoBehaviour
     public string _bottomString = "Bottom";
     public string _groundString = "Ground";
 
-    [SerializeField] private InputController _inputController = null;
     [SerializeField] private Map _map = null;
+    
 
-    /*
-     * tag : Ground Bottom
-     * layer : In Out Door Wall
-     */
+    
     private void Awake()
     {
         if (s_instance)
@@ -44,7 +47,22 @@ public class GameManager : MonoBehaviour
         _wallLayer = LayerMask.NameToLayer("Wall");
 
 
+        _bulletStorage = GameObject.Find("BulletStorage").transform;
+        LoadBullets(_bulletStorage.Find("PistolStorage"), ref _pistolBullets);
+        LoadBullets(_bulletStorage.Find("MachineGunStorage"), ref _machineGunBullets);
+        LoadBullets(_bulletStorage.Find("ShotGunStorage"), ref _shotGunBullets);
+
         _map.InitGameSetting();
+    }
+
+    private Bullet[] bullets;
+    private void LoadBullets(Transform storage, ref List<Bullet> bulletsList)
+    {
+        bullets = storage.GetComponentsInChildren<Bullet>();
+        foreach (Bullet bullet in bullets)
+        {
+            bulletsList.Add(bullet);
+        }
     }
 
     public void RenewMap()

@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using static ObjectBase;
 
-public class DetectGround : AllObject
+public class DetectGround : MonoBehaviour
 {
     private string bottomString = "Bottom";
-    private string groundString = "Ground";
+    //private string groundString = "Ground";
     [SerializeField] private List<Collider2D> m_Grounds = new();
     private CharacterBase _characterBase
     {

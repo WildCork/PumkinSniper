@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using static AllObject;
+using static ObjectBase;
 
 public class Map : MonoBehaviour
 {
+    [Header("String")]
     private string _coversString = "Covers";
     private string _wallString = "Walls";
     private string _doorsString = "Doors";
@@ -22,8 +23,11 @@ public class Map : MonoBehaviour
 
     private Transform _covers = null;
     private Transform _walls = null;
+    private Transform _doors = null;
     private Transform _inMap = null;
     private Transform _outMap = null;
+
+    [Header("Collider And Sprites")]
 
     [SerializeField] private HashSet<SpriteRenderer> _inCovers = new();
     [SerializeField] private HashSet<SpriteRenderer> _outCovers = new();
@@ -32,6 +36,7 @@ public class Map : MonoBehaviour
     [SerializeField] private SpriteRenderer[] _outGroundsOnIn = null;
     [SerializeField] private Collider2D[] _wallColliders = null;
 
+    [Header("Values")]
     [SerializeField] private WaitForSeconds _renewSeconds = null;
     [SerializeField] private float _renewTime = 0.05f;
     [SerializeField] private float _alphaChangeValue = 0.1f;
@@ -47,9 +52,20 @@ public class Map : MonoBehaviour
         _walls = transform.Find(_wallString);
         _inMap = transform.Find(_inMapString);
         _outMap = transform.Find(_outMapString);
+        _doors = transform.Find(_doorsString);
 
         _renewSeconds = new WaitForSeconds(_renewTime);
 
+        InitCovers();
+        InitMaps();
+        InitWalls();
+        InitDoors();
+    }
+
+    private Color _color = Color.clear;
+
+    private void InitCovers()
+    {
         foreach (Transform cover in _covers)
         {
             if (cover.name.Contains(_inCoverString))
@@ -61,7 +77,10 @@ public class Map : MonoBehaviour
                 _outCovers.Add(cover.Find(_coverString).GetComponent<SpriteRenderer>());
             }
         }
+    }
 
+    private void InitMaps()
+    {
         Transform[] maps = GetComponentsInChildren<Transform>();
         foreach (Transform map in maps)
         {
@@ -80,21 +99,35 @@ public class Map : MonoBehaviour
         {
             map.gameObject.layer = GameManager.s_instance._inLayer;
         }
-
         Transform[] outMaps = _outMap.GetComponentsInChildren<Transform>();
         foreach (Transform map in outMaps)
         {
             map.gameObject.layer = GameManager.s_instance._outLayer;
         }
 
-        _wallColliders = _walls.GetComponentsInChildren<Collider2D>();
         _inGrounds = _inMap.GetComponentsInChildren<SpriteRenderer>();
         _outGroundsOnOut = _outMap.Find(_onOutString).GetComponentsInChildren<SpriteRenderer>();
         _outGroundsOnIn = _outMap.Find(_onInString).GetComponentsInChildren<SpriteRenderer>();
     }
 
-    private Color _color = Color.clear;
+    private void InitWalls()
+    {
+        Transform[] walls = _walls.GetComponentsInChildren<Transform>();
+        foreach (Transform wall in walls)
+        {
+            wall.gameObject.layer = GameManager.s_instance._wallLayer;
+        }
+        _wallColliders = _walls.GetComponentsInChildren<Collider2D>();
+    }
 
+    private void InitDoors()
+    {
+        Transform[] doors = _doors.GetComponentsInChildren<Transform>();
+        foreach (Transform door in doors)
+        {
+            door.gameObject.layer = GameManager.s_instance._doorLayer;
+        }
+    }
 
     public void RenewMap()
     {

@@ -10,14 +10,14 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
   - In
   - Out
   - Door
   - Wall
-  - 
+  - Bullet
   - 
   - 
   - 

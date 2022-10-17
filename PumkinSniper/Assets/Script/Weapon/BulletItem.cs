@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BulletItem : AllObject
+public class BulletItem : ObjectBase
 {
     [SerializeField] private FirearmBase.FirearmKind _fireArmKind = FirearmBase.FirearmKind.Machinegun;
     private void Start()

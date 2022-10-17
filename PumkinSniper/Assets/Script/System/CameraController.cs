@@ -5,16 +5,21 @@ using UnityEngine;
 public class CameraController : MonoBehaviour
 {
     private CharacterBase _character;
+    private Camera _camera;
 
+    [SerializeField] private float _cameraSize;
     [SerializeField] private float _smoothTime;
     [SerializeField] private float _maxSpeed;
-    [SerializeField] private Vector2 _currentPos;
-    [SerializeField] private Vector2 _targetPos;
-    [SerializeField] private Vector2 _velocity;
-    [SerializeField] private Vector3 _pos;
+    private Vector2 _currentPos;
+    private Vector2 _targetPos;
+    private Vector2 _velocity;
+    private Vector3 _pos;
 
     void Start()
     {
+        _camera = GetComponent<Camera>();
+
+        _camera.orthographicSize = _cameraSize;
         _character = GameManager.s_instance._character;
     }
 

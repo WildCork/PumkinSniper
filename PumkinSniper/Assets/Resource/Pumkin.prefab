@@ -56,18 +56,21 @@ MonoBehaviour:
   _locationStatus: 1
   _cameraController: {fileID: 0}
   m_detectGround: {fileID: 0}
-  _sneakSpeed: 2
-  _walkSpeed: 4
-  _runSpeed: 7
-  _jumpPower: 12
   _hp: 100
   _maxHp: 100
+  _bulletCnt: 0
+  _firemArm: 0
+  _sneakSpeed: 2
+  _walkSpeed: 3
+  _runSpeed: 7
+  _jumpPower: 12
   _isJump: 0
   _isStopJump: 0
   _isOnGround: 0
   _canShortJumpTime: 0.2
   _forceToBlockJump: 7
   _onJumpTime: 0
+  _triggerWallSet: []
 --- !u!212 &233482903312871840
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -110,7 +113,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 1, g: 0.7753864, b: 0.43081754, a: 1}
+  m_Color: {r: 1, g: 0.9053154, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -297,6 +300,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _locationStatus: 1
+  m_Grounds: []
 --- !u!50 &2647930530304480544
 Rigidbody2D:
   serializedVersion: 4
@@ -392,7 +396,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 7cb7a83ae79188346b2514d87aed5a31, type: 3}
-  m_Color: {r: 1, g: 0.7764706, b: 0.43137255, a: 1}
+  m_Color: {r: 1, g: 0.9053154, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

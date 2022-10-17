@@ -1,20 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class Bullet : AllObject
+public class Bullet : ObjectBase
 {
-    private ParticleSystem m_particleSystem;
-
-    private ParticleSystem _particleSystem
+    [SerializeField] private float _damage;
+    [SerializeField] private float _lifeTime;
+    [SerializeField] private float _shotSpeed;
+    public void Fire()
     {
-        get
-        {
-            if (!m_particleSystem)
-            {
-                m_particleSystem = GetComponent<ParticleSystem>();
-            }
-            return m_particleSystem;
-        }
+        gameObject.SetActive(true);
+    }
+
+    [PunRPC]
+    private void Damage()
+    {
+
+    }
+
+    private void Disappear()
+    {
+
     }
 }

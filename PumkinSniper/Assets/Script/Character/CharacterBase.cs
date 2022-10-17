@@ -5,13 +5,14 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 
-
-public class CharacterBase : AllObject
+public class CharacterBase : ObjectBase
 {
     public enum Direction { Left, Right }
     [SerializeField] private CameraController _cameraController;
     [SerializeField] private DetectGround m_detectGround;
+    [SerializeField] private Vector2 _shootPos;
 
+    
     private DetectGround _detectGround
     {
         get 
@@ -26,12 +27,9 @@ public class CharacterBase : AllObject
     [Header("Character Stats")]
     [SerializeField] private int _hp = 100;
     [SerializeField] private int _maxHp = 100;
-    [SerializeField] private int _bulletCnt = 0;
     [SerializeField] private FirearmBase.FirearmKind _firemArm = FirearmBase.FirearmKind.Pistol;
 
     [Header("Character Ability")]
-    [Range(0, 10)]
-    [SerializeField] private float _sneakSpeed = 0;
     [Range(0, 10)]
     [SerializeField] private float _walkSpeed = 0;
     [Range(0, 10)]
@@ -54,7 +52,6 @@ public class CharacterBase : AllObject
         get { return _hp; }
         set 
         {
-            Debug.Log(_hp);
             if (value > _maxHp)
             {
                 _hp = _maxHp;
@@ -92,27 +89,16 @@ public class CharacterBase : AllObject
             {
                 Descend();
             }
-            if (!_isJump && ReturnTrue_MakeFalse(ref InputController.s_instance._jumpDown))
-            {
-                InputController.s_instance._jumpUp = false;
-                Jump();
-            }
         }
-        else
+        AllJump();
+        if (InputController.s_instance._shoot)
         {
-            if (_isJump && !_isStopJump)
-            {
-                _onJumpTime += Time.deltaTime;
-                if (_onJumpTime < _canShortJumpTime && ReturnTrue_MakeFalse(ref InputController.s_instance._jumpUp))
-                {
-                    StopJump();
-                }
-            }
+            Shoot();
         }
     }
 
 
-    #region Non Physic Part
+    #region Move Part
 
 
     private void Move(ref float horizontalInput, ref bool walkInput)
@@ -141,9 +127,37 @@ public class CharacterBase : AllObject
         }
         transform.localScale = preLocalScale;
     }
+    private void Descend()
+    {
+        _detectGround.Descend();
+    }
+
     #endregion
 
-    #region Physics Part
+    #region Jump Part
+
+    private void AllJump()
+    {
+        if (_isOnGround)
+        {
+            if (!_isJump && ReturnTrue_MakeFalse(ref InputController.s_instance._jumpDown))
+            {
+                InputController.s_instance._jumpUp = false;
+                Jump();
+            }
+        }
+        else
+        {
+            if (_isJump && !_isStopJump)
+            {
+                _onJumpTime += Time.deltaTime;
+                if (_onJumpTime < _canShortJumpTime && ReturnTrue_MakeFalse(ref InputController.s_instance._jumpUp))
+                {
+                    StopJump();
+                }
+            }
+        }
+    }
     private void Jump()
     {
         _isOnGround = false;
@@ -160,6 +174,26 @@ public class CharacterBase : AllObject
 
     #endregion
 
+    #region Shoot Part
+
+    private void Shoot()
+    {
+        switch (_firemArm)
+        {
+            case FirearmBase.FirearmKind.Pistol:
+
+                break;
+            case FirearmBase.FirearmKind.Machinegun:
+                break;
+            case FirearmBase.FirearmKind.Shotgun:
+                break;
+            default:
+                break;
+        }
+    }
+
+    #endregion
+
     #region Special Event
     private void Die()
     {
@@ -168,106 +202,9 @@ public class CharacterBase : AllObject
     #endregion
 
 
-    private void Descend()
-    {
-        _detectGround.Descend();
-    }
 
-    #region Trigger Door
 
-    [SerializeField] private List<Collider2D> _triggerWallSet = new();
-
-    private float _dotValue;
-    private void OnTriggerEnter2D(Collider2D collision)//Door와 겹치는 순간은 InDoor로 분류
-    {
-        if (collision.gameObject.layer == GameManager.s_instance._doorLayer && _triggerWallSet.Count == 0)
-        {
-            Vector2 doorDir = collision.transform.rotation * Vector2.left; //From Out To In
-            _dotValue = Vector2.Dot(ContactNormalVec(collision, transform.position), doorDir);
-            switch (_locationStatus)
-            {
-                case LocationStatus.In:
-                    if (_dotValue < 0)
-                    {
-                        RefreshLocationStatus(LocationStatus.Door);
-                    }
-                    break;
-                case LocationStatus.Out:
-                    if (_dotValue > 0)
-                    {
-                        RefreshLocationStatus(LocationStatus.Door);
-                    }
-                    break;
-                case LocationStatus.Door:
-                    break;
-                default:
-                    Debug.LogError($"It is no enum state for {_locationStatus}");
-                    break;
-            }
-        }
-        else if (collision.gameObject.layer == GameManager.s_instance._wallLayer)
-        {
-            _triggerWallSet.Add(collision);
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision) //TODO: check IndoorOutdoor
-    {
-        if (collision.gameObject.layer == GameManager.s_instance._doorLayer && _triggerWallSet.Count == 0)
-        {
-            Vector2 doorDir = collision.transform.rotation * Vector2.left; //From Out To In
-            _dotValue = Vector2.Dot(ContactNormalVec(collision, transform.position), doorDir);
-            switch (_locationStatus)
-            {
-                case LocationStatus.In:
-                    break;
-                case LocationStatus.Out:
-                    break;
-                case LocationStatus.Door:
-                    if (_dotValue > 0)
-                    {
-                        RefreshLocationStatus(LocationStatus.Out);
-                    }
-                    else if (_dotValue < 0)
-                    {
-                        RefreshLocationStatus(LocationStatus.In);
-                    }
-                    break;
-                default:
-                    Debug.LogError($"It is no enum state for {_locationStatus}");
-                    break;
-            }
-        }
-        else if (collision.gameObject.layer == GameManager.s_instance._wallLayer)
-        {
-            _triggerWallSet.Remove(collision);
-        }
-    }
-
-    public void RefreshOnGround(bool value)
-    {
-        _isOnGround = value;
-        if(_isOnGround)
-        {
-            InputController.s_instance._jumpUp = false;
-            _isJump = false;
-            _isStopJump = false;
-            _onJumpTime = 0f;
-        }
-    }
-
-    #endregion
-
-    private void RefreshLocationStatus(LocationStatus locationStatus)
-    {
-        _locationStatus = locationStatus;
-        GameManager.s_instance.RenewMap();
-    }
-    private Vector2 ContactNormalVec(Collider2D collision, Vector2 pos)
-    {
-        return (collision.ClosestPoint(pos) - pos).normalized;
-    }
-
+    #region Intellgience Function
     private bool ReturnTrue_MakeFalse(ref bool condition)
     {
         if (condition)
@@ -280,4 +217,16 @@ public class CharacterBase : AllObject
             return false;
         }
     }
+    public void RefreshOnGround(bool value)
+    {
+        _isOnGround = value;
+        if (_isOnGround)
+        {
+            InputController.s_instance._jumpUp = false;
+            _isJump = false;
+            _isStopJump = false;
+            _onJumpTime = 0f;
+        }
+    }
+    #endregion
 }

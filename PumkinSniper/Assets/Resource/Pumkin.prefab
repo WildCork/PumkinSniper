@@ -17,9 +17,9 @@ GameObject:
   - component: {fileID: 7532974224446993659}
   - component: {fileID: 2024152987758030193}
   - component: {fileID: 6650711052003138010}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Pumkin
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -54,13 +54,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _locationStatus: 1
+  _triggerWallSet: []
+  _triggerMapSet: []
   _cameraController: {fileID: 0}
   m_detectGround: {fileID: 0}
+  m_shootPos: {fileID: 0}
   _hp: 100
   _maxHp: 100
-  _bulletCnt: 0
-  _firemArm: 0
-  _sneakSpeed: 2
+  m_firemArm: 0
   _walkSpeed: 3
   _runSpeed: 7
   _jumpPower: 12
@@ -70,7 +71,6 @@ MonoBehaviour:
   _canShortJumpTime: 0.2
   _forceToBlockJump: 7
   _onJumpTime: 0
-  _triggerWallSet: []
 --- !u!212 &233482903312871840
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -179,6 +179,7 @@ MonoBehaviour:
   OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
+  - {fileID: 1967637522313187042}
   - {fileID: 2024152987758030193}
   - {fileID: 6650711052003138010}
   sceneViewId: 0
@@ -239,7 +240,7 @@ GameObject:
   - component: {fileID: 1698998441658199195}
   - component: {fileID: 5011197703819279017}
   - component: {fileID: 2647930530304480544}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: DetectGround
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -299,7 +300,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be4f809fd0a2bcb4a9cab0842863c369, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _locationStatus: 1
   m_Grounds: []
 --- !u!50 &2647930530304480544
 Rigidbody2D:
@@ -332,7 +332,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3793295567461568705}
   - component: {fileID: 6049168712419477032}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: nose
   m_TagString: Untagged
   m_Icon: {fileID: 0}

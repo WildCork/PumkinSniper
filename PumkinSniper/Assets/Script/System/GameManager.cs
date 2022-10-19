@@ -1,23 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Bullet;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager s_instance = null;
+    public static GameManager gameManager = null;
     public CharacterBase _character = null;
 
-    public Transform _bulletStorage = null;
-
-    public List<Bullet> _pistolBullets = null;
-    public List<Bullet> _machineGunBullets = null;
-    public List<Bullet> _shotGunBullets = null;
+    public Dictionary<BulletKind, List<Bullet>> _bulletStorage = new ();
+    public Dictionary<BulletKind, Transform> _storageTransform = new ();
 
     [Header("Layer")]
     public LayerMask _inLayer = -1;    //In
     public LayerMask _outLayer = -1;   //Out
     public LayerMask _doorLayer = -1;  //Door
     public LayerMask _wallLayer = -1;  //Wall
+    public LayerMask _playerLayer = -1;  //Player
 
     [Header("Tag")]
     public string _playerString = "Player";
@@ -30,11 +29,11 @@ public class GameManager : MonoBehaviour
     
     private void Awake()
     {
-        if (s_instance)
+        if (gameManager)
         {
             Destroy(this);
         }
-        s_instance = this;
+        gameManager = this;
         InitGameSetting();
         Screen.SetResolution(1920, 1080, false);
     }
@@ -45,23 +44,31 @@ public class GameManager : MonoBehaviour
         _outLayer = LayerMask.NameToLayer("Out");
         _doorLayer = LayerMask.NameToLayer("Door");
         _wallLayer = LayerMask.NameToLayer("Wall");
+        _playerLayer = LayerMask.NameToLayer("Player");
 
-
-        _bulletStorage = GameObject.Find("BulletStorage").transform;
-        LoadBullets(_bulletStorage.Find("PistolStorage"), ref _pistolBullets);
-        LoadBullets(_bulletStorage.Find("MachineGunStorage"), ref _machineGunBullets);
-        LoadBullets(_bulletStorage.Find("ShotGunStorage"), ref _shotGunBullets);
+        Transform storage = GameObject.Find("BulletStorage").transform;
+        LoadBullets(storage.Find("PistolStorage"), BulletKind.Pistol);
+        LoadBullets(storage.Find("MachineGunStorage"), BulletKind.Machinegun);
+        LoadBullets(storage.Find("ShotGunStorage"), BulletKind.Shotgun);
 
         _map.InitGameSetting();
     }
 
     private Bullet[] bullets;
-    private void LoadBullets(Transform storage, ref List<Bullet> bulletsList)
+    private void LoadBullets(Transform storage, BulletKind bulletKind)
     {
+        _storageTransform[bulletKind] = storage;
         bullets = storage.GetComponentsInChildren<Bullet>();
+        _bulletStorage.Add(bulletKind, new());
         foreach (Bullet bullet in bullets)
         {
-            bulletsList.Add(bullet);
+            bullet._bulletKind = bulletKind;
+            _bulletStorage[bulletKind].Add(bullet);
+        }
+
+        if (bullets.Length == 0 || bullets[0]._maxLifeTime / bullets[0]._shootDelayTime > bullets.Length)
+        {
+            //Debug.LogError($"{bulletKind} Storage Problem Happened!!");
         }
     }
 

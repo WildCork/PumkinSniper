@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static GameManager;
 
 public class CameraController : MonoBehaviour
 {
@@ -10,27 +11,23 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float _cameraSize;
     [SerializeField] private float _smoothTime;
     [SerializeField] private float _maxSpeed;
-    private Vector2 _currentPos;
-    private Vector2 _targetPos;
-    private Vector2 _velocity;
-    private Vector3 _pos;
+    private const float cameraPosValueZ = -50;
+    private Vector3 _targetPos;
+    private Vector3 _velocity;
 
     void Start()
     {
         _camera = GetComponent<Camera>();
 
         _camera.orthographicSize = _cameraSize;
-        _character = GameManager.s_instance._character;
+        _character = gameManager._character;
     }
 
 
     void Update()
     {
-        _currentPos = transform.position;
         _targetPos = _character.transform.position;
-        _pos = Vector2.SmoothDamp(_currentPos, _targetPos, ref _velocity, _smoothTime, _maxSpeed);
-        _pos.z = _character.transform.position.z - 1;
-
-        transform.position = _pos;
+        _targetPos.z = cameraPosValueZ;
+        transform.position = Vector3.SmoothDamp(transform.position, _targetPos, ref _velocity, _smoothTime, _maxSpeed);
     }
 }

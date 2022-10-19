@@ -5,21 +5,22 @@ using UnityEngine;
 
 public class InputController : MonoBehaviour
 {
-    public static InputController s_instance = null;
+    public static InputController inputController = null;
 
     private void Awake()
     {
-        if (s_instance)
+        if (inputController)
         {
             Destroy(this);
         }
-        s_instance = this;
+        inputController = this;
     }
 
     public float _horizontal = 0;
     public bool _descend = false;
 
-    public bool _shoot = false;
+    public bool _shootUp = false;
+    public bool _shootDown = false;
     public bool _grenadeDown = false;
     public bool _jumpDown = false;
     public bool _jumpUp = false;
@@ -48,7 +49,8 @@ public class InputController : MonoBehaviour
     private void Update()
     {
         _horizontal = Input.GetAxisRaw(_horizontalString);
-        _shoot = Input.GetKey(_shootCode);
+        _shootUp = Input.GetKeyUp(_shootCode);
+        _shootDown = Input.GetKeyDown(_shootCode);
         _walk = Input.GetKey(_walkCode);
         _tab = Input.GetKey(_tabCode);
 

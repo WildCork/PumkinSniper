@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using static ObjectBase;
+using static GameManager;
 
 public class Map : MonoBehaviour
 {
@@ -21,11 +22,11 @@ public class Map : MonoBehaviour
     private string  _inCoverString = "InCover";
     private string _outCoverString = "OutCover";
 
-    private Transform _covers = null;
-    private Transform _walls = null;
-    private Transform _doors = null;
-    private Transform _inMap = null;
-    private Transform _outMap = null;
+    public static Transform _covers = null;
+    public static Transform _walls = null;
+    public static Transform _doors = null;
+    public static Transform _inMap = null;
+    public static Transform _outMap = null;
 
     [Header("Collider And Sprites")]
 
@@ -43,7 +44,7 @@ public class Map : MonoBehaviour
 
     private CharacterBase _characterBase
     {
-        get { return GameManager.s_instance._character; }
+        get { return gameManager._character; }
     }
 
     public void InitGameSetting()
@@ -84,25 +85,25 @@ public class Map : MonoBehaviour
         Transform[] maps = GetComponentsInChildren<Transform>();
         foreach (Transform map in maps)
         {
-            if (map.name.Contains(GameManager.s_instance._bottomString))
+            if (map.name.Contains(gameManager._bottomString))
             {
-                map.tag = GameManager.s_instance._bottomString;
+                map.tag = gameManager._bottomString;
             }
-            else if (map.name.Contains(GameManager.s_instance._groundString))
+            else if (map.name.Contains(gameManager._groundString))
             {
-                map.tag = GameManager.s_instance._groundString;
+                map.tag = gameManager._groundString;
             }
         }
 
         Transform[] inMaps = _inMap.GetComponentsInChildren<Transform>();
         foreach (Transform map in inMaps)
         {
-            map.gameObject.layer = GameManager.s_instance._inLayer;
+            map.gameObject.layer = gameManager._inLayer;
         }
         Transform[] outMaps = _outMap.GetComponentsInChildren<Transform>();
         foreach (Transform map in outMaps)
         {
-            map.gameObject.layer = GameManager.s_instance._outLayer;
+            map.gameObject.layer = gameManager._outLayer;
         }
 
         _inGrounds = _inMap.GetComponentsInChildren<SpriteRenderer>();
@@ -115,7 +116,7 @@ public class Map : MonoBehaviour
         Transform[] walls = _walls.GetComponentsInChildren<Transform>();
         foreach (Transform wall in walls)
         {
-            wall.gameObject.layer = GameManager.s_instance._wallLayer;
+            wall.gameObject.layer = gameManager._wallLayer;
         }
         _wallColliders = _walls.GetComponentsInChildren<Collider2D>();
     }
@@ -125,7 +126,7 @@ public class Map : MonoBehaviour
         Transform[] doors = _doors.GetComponentsInChildren<Transform>();
         foreach (Transform door in doors)
         {
-            door.gameObject.layer = GameManager.s_instance._doorLayer;
+            door.gameObject.layer = gameManager._doorLayer;
         }
     }
 

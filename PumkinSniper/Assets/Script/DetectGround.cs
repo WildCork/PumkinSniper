@@ -4,20 +4,19 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using static ObjectBase;
+using static GameManager;
 
 public class DetectGround : MonoBehaviour
 {
-    private string bottomString = "Bottom";
-    //private string groundString = "Ground";
     [SerializeField] private List<Collider2D> m_Grounds = new();
     private CharacterBase _characterBase
     {
-        get { return GameManager.s_instance._character; }
+        get { return gameManager._character; }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == GameManager.s_instance._playerString)
+        if (collision.gameObject.tag == gameManager._playerString)
         {
             return;
         }
@@ -32,13 +31,13 @@ public class DetectGround : MonoBehaviour
         switch (_characterBase._locationStatus)
         {
             case LocationStatus.Out:
-                if (collision.gameObject.layer == GameManager.s_instance._outLayer)
+                if (collision.gameObject.layer == gameManager._outLayer)
                 {
                     MakeGround(ref collision, true);
                 }
                 break;
             case LocationStatus.In:
-                if (collision.gameObject.layer == GameManager.s_instance._inLayer)
+                if (collision.gameObject.layer == gameManager._inLayer)
                 {
                     MakeGround(ref collision, true);
                 }
@@ -52,7 +51,7 @@ public class DetectGround : MonoBehaviour
     }
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == GameManager.s_instance._playerString)
+        if (collision.gameObject.tag == gameManager._playerString)
         {
             return;
         }
@@ -60,13 +59,13 @@ public class DetectGround : MonoBehaviour
         switch (_characterBase._locationStatus)
         {
             case LocationStatus.Out:
-                if (collision.gameObject.layer == GameManager.s_instance._outLayer)
+                if (collision.gameObject.layer == gameManager._outLayer)
                 {
                     MakeGround(ref collision, false);
                 }
                 break;
             case LocationStatus.In:
-                if (collision.gameObject.layer == GameManager.s_instance._inLayer)
+                if (collision.gameObject.layer == gameManager._inLayer)
                 {
                     MakeGround(ref collision, false);
                 }
@@ -83,7 +82,7 @@ public class DetectGround : MonoBehaviour
     {
         if (isReal)
         {
-            if (collision.gameObject.layer != GameManager.s_instance._doorLayer)
+            if (collision.gameObject.layer != gameManager._doorLayer)
             {
                 collision.isTrigger = false;
                 _characterBase.RefreshOnGround(true);
@@ -91,8 +90,8 @@ public class DetectGround : MonoBehaviour
         }
         else
         {
-            if (collision.gameObject.layer != GameManager.s_instance._wallLayer &&
-                collision.gameObject.CompareTag(bottomString) == false)
+            if (collision.gameObject.layer != gameManager._wallLayer &&
+                collision.gameObject.CompareTag(gameManager._bottomString) == false)
             {
                 collision.isTrigger = true;
             }
@@ -107,7 +106,7 @@ public class DetectGround : MonoBehaviour
     {
         foreach (Collider2D ground in m_Grounds)
         {
-            if (!ground.CompareTag(bottomString))
+            if (!ground.CompareTag(gameManager._bottomString))
             {
                 ground.isTrigger = true;
                 m_Grounds.Remove(ground);

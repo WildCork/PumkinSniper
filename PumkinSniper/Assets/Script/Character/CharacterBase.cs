@@ -1,18 +1,31 @@
-using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using Photon.Pun;
+using static Bullet;
+using static GameManager;
+using static InputController;
 
-
-public class CharacterBase : ObjectBase
+public class CharacterBase : ObjectBase , IPunObservable
 {
     public enum Direction { Left, Right }
     [SerializeField] private CameraController _cameraController;
     [SerializeField] private DetectGround m_detectGround;
-    [SerializeField] private Vector2 _shootPos;
+    [SerializeField] private Transform m_shootPos;
 
-    
+    void IPunObservable.OnPhotonSerializeView(Photon.Pun.PhotonStream stream, Photon.Pun.PhotonMessageInfo info)
+    {
+        if (photonView.IsMine)
+        {
+
+        }
+        else
+        {
+
+        }
+    }
+
     private DetectGround _detectGround
     {
         get 
@@ -24,10 +37,29 @@ public class CharacterBase : ObjectBase
             return m_detectGround;
         }
     }
+
+    private Vector3 _shootPos
+    {
+        get {
+            switch (direction)
+            {
+                case Direction.Left:
+                    return transform.position + Vector3.left; 
+                case Direction.Right:
+                    return transform.position + Vector3.right;
+                default:
+                    return transform.position;
+            }
+        }
+    }
+
+
+
     [Header("Character Stats")]
     [SerializeField] private int _hp = 100;
     [SerializeField] private int _maxHp = 100;
-    [SerializeField] private FirearmBase.FirearmKind _firemArm = FirearmBase.FirearmKind.Pistol;
+    [SerializeField] private int _bulletsCnt = -1;
+    [SerializeField] private BulletKind m_firemArm = BulletKind.Pistol;
 
     [Header("Character Ability")]
     [Range(0, 10)]
@@ -39,6 +71,7 @@ public class CharacterBase : ObjectBase
 
     [Header("Character Condition")]
     [SerializeField] private bool _isJump = false;
+    [SerializeField] private bool _isShoot = false;
     [SerializeField] private bool _isStopJump = false;
     [SerializeField] private bool _isOnGround = false;
     [Range(0, 1)]
@@ -81,22 +114,22 @@ public class CharacterBase : ObjectBase
             return;
         }
 
-        Move(ref InputController.s_instance._horizontal, ref InputController.s_instance._walk);
+        Move(ref inputController._horizontal, ref inputController._walk);
         if (_isOnGround)
         {
-            Turn(ref InputController.s_instance._horizontal);
-            if (ReturnTrue_MakeFalse(ref InputController.s_instance._descend))
+            Turn(ref inputController._horizontal);
+            if (ReturnTrue_MakeFalse(ref inputController._descend))
             {
                 Descend();
             }
         }
         AllJump();
-        if (InputController.s_instance._shoot)
-        {
-            Shoot();
-        }
     }
 
+    private void Update()
+    {
+        TryShoot();
+    }
 
     #region Move Part
 
@@ -140,9 +173,9 @@ public class CharacterBase : ObjectBase
     {
         if (_isOnGround)
         {
-            if (!_isJump && ReturnTrue_MakeFalse(ref InputController.s_instance._jumpDown))
+            if (!_isJump && ReturnTrue_MakeFalse(ref inputController._jumpDown))
             {
-                InputController.s_instance._jumpUp = false;
+                inputController._jumpUp = false;
                 Jump();
             }
         }
@@ -151,7 +184,7 @@ public class CharacterBase : ObjectBase
             if (_isJump && !_isStopJump)
             {
                 _onJumpTime += Time.deltaTime;
-                if (_onJumpTime < _canShortJumpTime && ReturnTrue_MakeFalse(ref InputController.s_instance._jumpUp))
+                if (_onJumpTime < _canShortJumpTime && ReturnTrue_MakeFalse(ref inputController._jumpUp))
                 {
                     StopJump();
                 }
@@ -176,19 +209,54 @@ public class CharacterBase : ObjectBase
 
     #region Shoot Part
 
+    private float _shootOffset;
+    private float _shootDelay = 0f;
+    private int _shootUpOrDown = 1;
+    private void TryShoot()
+    {
+        if (gameManager._bulletStorage[m_firemArm].Count == 0)
+        {
+            Debug.LogError("There is no bullets!!");
+            return;
+        }
+
+        if (inputController._shootDown)
+        {
+            _isShoot = true;
+        }
+        else if (inputController._shootUp)
+        {
+            _isShoot = false;
+        }
+
+        if (_isShoot)
+        {
+            if (_shootDelay <= 0)
+            {
+                Shoot();
+            }
+        }
+        _shootDelay -= Time.deltaTime;
+    }
+
     private void Shoot()
     {
-        switch (_firemArm)
+        if (_bulletsCnt > 0)
         {
-            case FirearmBase.FirearmKind.Pistol:
-
-                break;
-            case FirearmBase.FirearmKind.Machinegun:
-                break;
-            case FirearmBase.FirearmKind.Shotgun:
-                break;
-            default:
-                break;
+            _bulletsCnt--;
+        }
+        _shootUpOrDown = -_shootUpOrDown;
+        _shootOffset = gameManager._bulletStorage[m_firemArm][0]._shootPosOffset;
+        gameManager._bulletStorage[m_firemArm][0]._locationStatus = _locationStatus;
+        gameManager._bulletStorage[m_firemArm][0].Shoot(_shootPos + _shootUpOrDown * Vector3.up * _shootOffset, direction);
+        _shootDelay = gameManager._bulletStorage[m_firemArm][0]._shootDelayTime;
+        if (_bulletsCnt == 0)
+        {
+            _bulletsCnt = -1;
+            if (m_firemArm != BulletKind.Pistol)
+            {
+                m_firemArm = BulletKind.Pistol;
+            }
         }
     }
 
@@ -205,6 +273,13 @@ public class CharacterBase : ObjectBase
 
 
     #region Intellgience Function
+
+    protected override void RefreshLocationStatus(LocationStatus locationStatus)
+    {
+        base.RefreshLocationStatus(locationStatus);
+        gameManager.RenewMap();
+    }
+
     private bool ReturnTrue_MakeFalse(ref bool condition)
     {
         if (condition)
@@ -222,7 +297,7 @@ public class CharacterBase : ObjectBase
         _isOnGround = value;
         if (_isOnGround)
         {
-            InputController.s_instance._jumpUp = false;
+            inputController._jumpUp = false;
             _isJump = false;
             _isStopJump = false;
             _onJumpTime = 0f;

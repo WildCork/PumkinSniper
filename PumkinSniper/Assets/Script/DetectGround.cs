@@ -24,10 +24,6 @@ public class DetectGround : MonoBehaviour
         {
             return;
         }
-        if (!m_Grounds.Contains(collision))
-        {
-            m_Grounds.Add(collision);
-        }
         switch (_characterBase._locationStatus)
         {
             case LocationStatus.Out:
@@ -55,7 +51,6 @@ public class DetectGround : MonoBehaviour
         {
             return;
         }
-        m_Grounds.Remove(collision);
         switch (_characterBase._locationStatus)
         {
             case LocationStatus.Out:
@@ -85,6 +80,10 @@ public class DetectGround : MonoBehaviour
             if (collision.gameObject.layer != gameManager._doorLayer)
             {
                 collision.isTrigger = false;
+                if (m_Grounds.Contains(collision))
+                {
+                    m_Grounds.Add(collision);
+                }
                 _characterBase.RefreshOnGround(true);
             }
         }
@@ -94,6 +93,7 @@ public class DetectGround : MonoBehaviour
                 collision.gameObject.CompareTag(gameManager._bottomString) == false)
             {
                 collision.isTrigger = true;
+                m_Grounds.Remove(collision);
             }
             if (m_Grounds.Count == 0)
             {

@@ -66,9 +66,9 @@ public class GameManager : MonoBehaviour
             _bulletStorage[bulletKind].Add(bullet);
         }
 
-        if (bullets.Length == 0 || bullets[0]._maxLifeTime / bullets[0]._shootDelayTime > bullets.Length)
+        if (bullets[0]._maxLifeTime / bullets[0]._shootDelayTime > bullets.Length)
         {
-            //Debug.LogError($"{bulletKind} Storage Problem Happened!!");
+            Debug.LogError($"{bulletKind} Storage has not enough bullets!!");
         }
     }
 

@@ -56,13 +56,13 @@ MonoBehaviour:
   _triggerWallSet: []
   _triggerMapSet: []
   _bulletKind: 1
-  _shootDelayTime: 0.15
+  _shootDelayTime: 0.1
   _maxLifeTime: 2
-  _lifeTimeAfterRebound: 0.5
+  _lifeTimeAfterRebound: 0.2
   _reboundDamp: 0.5
   _reboundAngle: 30
   _shootPosOffset: 0.3
-  _damage: 5
+  _damage: 3
   _shotSpeed: 40
 --- !u!50 &9152529133748797579
 Rigidbody2D:

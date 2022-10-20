@@ -41,11 +41,6 @@ public class InputController : MonoBehaviour
 
     private  KeyCode _walkCode = KeyCode.LeftControl;
 
-    private float _canJumpUpTime = 0f;
-    private float _canJumpDownTime = 0f;
-    private float _canGrenadeTime = 0f;
-    private float _canDescendTime = 0f;
-
     private void Update()
     {
         _horizontal = Input.GetAxisRaw(_horizontalString);
@@ -54,34 +49,9 @@ public class InputController : MonoBehaviour
         _walk = Input.GetKey(_walkCode);
         _tab = Input.GetKey(_tabCode);
 
-        if (!_grenadeDown)
-            _grenadeDown = Input.GetKeyDown(_grenadeCode);
-        if (!_descend)
-            _descend = Input.GetKeyDown(_descendCode);
-        if (!_jumpUp)
-            _jumpUp = Input.GetKeyUp(_jumpCode);
-        if (!_jumpDown)
-            _jumpDown = Input.GetKeyDown(_jumpCode);
-
-        ConfirmCancel(ref _grenadeDown, ref _canGrenadeTime);
-        ConfirmCancel(ref _descend, ref _canDescendTime);
-        ConfirmCancel(ref _jumpUp, ref _canJumpUpTime);
-        ConfirmCancel(ref _jumpDown, ref _canJumpDownTime);
-    }
-
-    private void ConfirmCancel(ref bool isKey, ref float canTime)
-    {
-        if(!isKey)
-        {
-            canTime = 0f;
-        }
-        else
-        {
-            canTime += Time.deltaTime;
-            if (canTime > Time.fixedDeltaTime * 2)
-            {
-                isKey = false;
-            }
-        }
+        _grenadeDown = Input.GetKeyDown(_grenadeCode);
+        _descend = Input.GetKeyDown(_descendCode);
+        _jumpUp = Input.GetKeyUp(_jumpCode);
+        _jumpDown = Input.GetKeyDown(_jumpCode);
     }
 }

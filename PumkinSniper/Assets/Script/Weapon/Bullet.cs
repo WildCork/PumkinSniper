@@ -106,6 +106,7 @@ public class Bullet : ObjectBase
         switch (_locationStatus)
         {
             case LocationStatus.In:
+            case LocationStatus.Door:
                 if (collision.gameObject.layer == gameManager._wallLayer)
                 {
                     ReboundFromWall(collision);

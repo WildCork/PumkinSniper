@@ -58,6 +58,7 @@ public class CharacterBase : ObjectBase , IPunObservable
     [Header("Character Stats")]
     [SerializeField] private int _hp = 100;
     [SerializeField] private int _maxHp = 100;
+    [SerializeField] private float _shootCancelDelay = 0.1f;
     [SerializeField] private int _bulletsCnt = -1;
     [SerializeField] private BulletKind m_firemArm = BulletKind.Pistol;
 
@@ -115,20 +116,20 @@ public class CharacterBase : ObjectBase , IPunObservable
         }
 
         Move(ref inputController._horizontal, ref inputController._walk);
-        if (_isOnGround)
-        {
-            Turn(ref inputController._horizontal);
-            if (ReturnTrue_MakeFalse(ref inputController._descend))
-            {
-                Descend();
-            }
-        }
-        AllJump();
     }
 
     private void Update()
     {
+        if (_isOnGround)
+        {
+            Turn(ref inputController._horizontal);
+            if (inputController._descend)
+            {
+                Descend();
+            }
+        }
         TryShoot();
+        AllJump();
     }
 
     #region Move Part
@@ -173,7 +174,7 @@ public class CharacterBase : ObjectBase , IPunObservable
     {
         if (_isOnGround)
         {
-            if (!_isJump && ReturnTrue_MakeFalse(ref inputController._jumpDown))
+            if (!_isJump && inputController._jumpDown)
             {
                 inputController._jumpUp = false;
                 Jump();
@@ -184,7 +185,7 @@ public class CharacterBase : ObjectBase , IPunObservable
             if (_isJump && !_isStopJump)
             {
                 _onJumpTime += Time.deltaTime;
-                if (_onJumpTime < _canShortJumpTime && ReturnTrue_MakeFalse(ref inputController._jumpUp))
+                if (_onJumpTime < _canShortJumpTime && inputController._jumpUp)
                 {
                     StopJump();
                 }
@@ -227,6 +228,10 @@ public class CharacterBase : ObjectBase , IPunObservable
         else if (inputController._shootUp)
         {
             _isShoot = false;
+            if (_shootDelay > _shootCancelDelay)
+            {
+                _shootDelay = _shootCancelDelay;
+            }
         }
 
         if (_isShoot)
@@ -278,19 +283,6 @@ public class CharacterBase : ObjectBase , IPunObservable
     {
         base.RefreshLocationStatus(locationStatus);
         gameManager.RenewMap();
-    }
-
-    private bool ReturnTrue_MakeFalse(ref bool condition)
-    {
-        if (condition)
-        {
-            condition = false;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
     public void RefreshOnGround(bool value)
     {

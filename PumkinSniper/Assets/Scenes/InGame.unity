@@ -2159,6 +2159,75 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 2
   m_SpriteSortPoint: 0
+--- !u!1001 &453336218
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8849741788554515986, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_CollisionDetection
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1673651315805265570, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: _sizeType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1673651315805265570, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: _bulletKind
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_RootOrder
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -10.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -6.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 213858834752946448, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9060234885281602161, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
+      propertyPath: m_Name
+      value: Item
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: dc97ba419e4e7b042950f374dd13671c, type: 3}
 --- !u!4 &455074194 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1070118536237479551, guid: 029092323ef454e41a1d003f9ee36101, type: 3}
@@ -3517,9 +3586,9 @@ MonoBehaviour:
   _playerLayer:
     serializedVersion: 2
     m_Bits: 4294967295
-  _playerString: Player
-  _bottomString: Bottom
-  _groundString: Ground
+  _playerTag: Player
+  _bottomTag: Bottom
+  _groundTag: Ground
   _map: {fileID: 2088967485}
 --- !u!4 &898596466
 Transform:

@@ -59,8 +59,9 @@ public class CharacterBase : ObjectBase , IPunObservable
     [SerializeField] private int _hp = 100;
     [SerializeField] private int _maxHp = 100;
     [SerializeField] private float _shootCancelDelay = 0.1f;
-    [SerializeField] private int _bulletsCnt = -1;
-    [SerializeField] private BulletKind m_firemArm = BulletKind.Pistol;
+    [SerializeField] private int _maxBulletCnt = 200;
+    [SerializeField] private int _bulletCnt = -1;
+    public BulletType _firemArm = BulletType.Pistol;
 
     [Header("Character Ability")]
     [Range(0, 10)]
@@ -102,7 +103,18 @@ public class CharacterBase : ObjectBase , IPunObservable
         }
     }
 
-
+    public int BulletCnt
+    {
+        get { return _bulletCnt; }
+        set 
+        {
+            if (value > _maxBulletCnt)
+            {
+                value = _maxBulletCnt;
+            }
+            _bulletCnt = value; 
+        }
+    }
     public Direction direction
     {
         get { return transform.localScale.x > 0 ? Direction.Right : Direction.Left; }
@@ -215,7 +227,7 @@ public class CharacterBase : ObjectBase , IPunObservable
     private int _shootUpOrDown = 1;
     private void TryShoot()
     {
-        if (gameManager._bulletStorage[m_firemArm].Count == 0)
+        if (gameManager._bulletStorage[_firemArm].Count == 0)
         {
             Debug.LogError("There is no bullets!!");
             return;
@@ -246,21 +258,21 @@ public class CharacterBase : ObjectBase , IPunObservable
 
     private void Shoot()
     {
-        if (_bulletsCnt > 0)
+        if (_bulletCnt > 0)
         {
-            _bulletsCnt--;
+            _bulletCnt--;
         }
         _shootUpOrDown = -_shootUpOrDown;
-        _shootOffset = gameManager._bulletStorage[m_firemArm][0]._shootPosOffset;
-        gameManager._bulletStorage[m_firemArm][0]._locationStatus = _locationStatus;
-        gameManager._bulletStorage[m_firemArm][0].Shoot(_shootPos + _shootUpOrDown * Vector3.up * _shootOffset, direction);
-        _shootDelay = gameManager._bulletStorage[m_firemArm][0]._shootDelayTime;
-        if (_bulletsCnt == 0)
+        _shootOffset = gameManager._bulletStorage[_firemArm][0]._shootPosOffset;
+        gameManager._bulletStorage[_firemArm][0]._locationStatus = _locationStatus;
+        gameManager._bulletStorage[_firemArm][0].Shoot(_shootPos + _shootUpOrDown * Vector3.up * _shootOffset, direction);
+        _shootDelay = gameManager._bulletStorage[_firemArm][0]._shootDelayTime;
+        if (_bulletCnt == 0)
         {
-            _bulletsCnt = -1;
-            if (m_firemArm != BulletKind.Pistol)
+            _bulletCnt = -1;
+            if (_firemArm != BulletType.Pistol)
             {
-                m_firemArm = BulletKind.Pistol;
+                _firemArm = BulletType.Pistol;
             }
         }
     }

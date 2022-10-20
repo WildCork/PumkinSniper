@@ -7,8 +7,8 @@ using static GameManager;
 
 public class Bullet : ObjectBase
 {
-    public enum BulletKind { Pistol, Machinegun, Shotgun }
-    public BulletKind _bulletKind = BulletKind.Pistol;
+    public enum BulletType { Pistol, Machinegun, Shotgun }
+    public BulletType _bulletKind = BulletType.Pistol;
     [Header("Time")]
     public float _shootDelayTime;
     public float _maxLifeTime;
@@ -113,7 +113,7 @@ public class Bullet : ObjectBase
                 }
                 else if (collision.gameObject.layer == gameManager._inLayer)
                 {
-                    if (collision.gameObject.CompareTag(gameManager._bottomString))
+                    if (collision.gameObject.CompareTag(gameManager._bottomTag))
                     {
                         Materialize();
                     }
@@ -122,7 +122,7 @@ public class Bullet : ObjectBase
             case LocationStatus.Out:
                 if (collision.gameObject.layer == gameManager._outLayer)
                 {
-                    if (collision.gameObject.CompareTag(gameManager._bottomString))
+                    if (collision.gameObject.CompareTag(gameManager._bottomTag))
                     {
                         Materialize();
                     }

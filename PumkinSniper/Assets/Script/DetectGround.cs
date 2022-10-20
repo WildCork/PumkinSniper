@@ -16,7 +16,7 @@ public class DetectGround : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == gameManager._playerString)
+        if (collision.gameObject.tag == gameManager._playerTag)
         {
             return;
         }
@@ -47,7 +47,7 @@ public class DetectGround : MonoBehaviour
     }
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == gameManager._playerString)
+        if (collision.gameObject.tag == gameManager._playerTag)
         {
             return;
         }
@@ -80,7 +80,7 @@ public class DetectGround : MonoBehaviour
             if (collision.gameObject.layer != gameManager._doorLayer)
             {
                 collision.isTrigger = false;
-                if (m_Grounds.Contains(collision))
+                if (!m_Grounds.Contains(collision))
                 {
                     m_Grounds.Add(collision);
                 }
@@ -90,7 +90,7 @@ public class DetectGround : MonoBehaviour
         else
         {
             if (collision.gameObject.layer != gameManager._wallLayer &&
-                collision.gameObject.CompareTag(gameManager._bottomString) == false)
+                collision.gameObject.CompareTag(gameManager._bottomTag) == false)
             {
                 collision.isTrigger = true;
                 m_Grounds.Remove(collision);
@@ -106,7 +106,7 @@ public class DetectGround : MonoBehaviour
     {
         foreach (Collider2D ground in m_Grounds)
         {
-            if (!ground.CompareTag(gameManager._bottomString))
+            if (!ground.CompareTag(gameManager._bottomTag))
             {
                 ground.isTrigger = true;
                 m_Grounds.Remove(ground);

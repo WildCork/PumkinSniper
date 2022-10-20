@@ -85,13 +85,13 @@ public class Map : MonoBehaviour
         Transform[] maps = GetComponentsInChildren<Transform>();
         foreach (Transform map in maps)
         {
-            if (map.name.Contains(gameManager._bottomString))
+            if (map.name.Contains(gameManager._bottomTag))
             {
-                map.tag = gameManager._bottomString;
+                map.tag = gameManager._bottomTag;
             }
-            else if (map.name.Contains(gameManager._groundString))
+            else if (map.name.Contains(gameManager._groundTag))
             {
-                map.tag = gameManager._groundString;
+                map.tag = gameManager._groundTag;
             }
         }
 

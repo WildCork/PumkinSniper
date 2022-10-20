@@ -8,8 +8,8 @@ public class GameManager : MonoBehaviour
     public static GameManager gameManager = null;
     public CharacterBase _character = null;
 
-    public Dictionary<BulletKind, List<Bullet>> _bulletStorage = new ();
-    public Dictionary<BulletKind, Transform> _storageTransform = new ();
+    public Dictionary<BulletType, List<Bullet>> _bulletStorage = new ();
+    public Dictionary<BulletType, Transform> _storageTransform = new ();
 
     [Header("Layer")]
     public LayerMask _inLayer = -1;    //In
@@ -19,9 +19,9 @@ public class GameManager : MonoBehaviour
     public LayerMask _playerLayer = -1;  //Player
 
     [Header("Tag")]
-    public string _playerString = "Player";
-    public string _bottomString = "Bottom";
-    public string _groundString = "Ground";
+    public string _playerTag = "Player";
+    public string _bottomTag = "Bottom";
+    public string _groundTag = "Ground";
 
     [SerializeField] private Map _map = null;
     
@@ -47,15 +47,15 @@ public class GameManager : MonoBehaviour
         _playerLayer = LayerMask.NameToLayer("Player");
 
         Transform storage = GameObject.Find("BulletStorage").transform;
-        LoadBullets(storage.Find("PistolStorage"), BulletKind.Pistol);
-        LoadBullets(storage.Find("MachineGunStorage"), BulletKind.Machinegun);
-        LoadBullets(storage.Find("ShotGunStorage"), BulletKind.Shotgun);
+        LoadBullets(storage.Find("PistolStorage"), BulletType.Pistol);
+        LoadBullets(storage.Find("MachineGunStorage"), BulletType.Machinegun);
+        LoadBullets(storage.Find("ShotGunStorage"), BulletType.Shotgun);
 
         _map.InitGameSetting();
     }
 
     private Bullet[] bullets;
-    private void LoadBullets(Transform storage, BulletKind bulletKind)
+    private void LoadBullets(Transform storage, BulletType bulletKind)
     {
         _storageTransform[bulletKind] = storage;
         bullets = storage.GetComponentsInChildren<Bullet>();

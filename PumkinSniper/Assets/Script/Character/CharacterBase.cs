@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Photon.Pun;
 using static Bullet;
+using static Grenade;
 using static GameManager;
 using static InputController;
 
@@ -38,13 +39,14 @@ public class CharacterBase : ObjectBase , IPunObservable
         }
     }
 
-    private Vector3 _shootPos
+    public Vector3 ShootPos
     {
-        get {
+        get
+        {
             switch (direction)
             {
                 case Direction.Left:
-                    return transform.position + Vector3.left; 
+                    return transform.position + Vector3.left;
                 case Direction.Right:
                     return transform.position + Vector3.right;
                 default:
@@ -52,16 +54,55 @@ public class CharacterBase : ObjectBase , IPunObservable
             }
         }
     }
+    public Vector3 ThrowPos
+    {
+        get
+        {
+            switch (direction)
+            {
+                case Direction.Left:
+                    return transform.position + Vector3.left + Vector3.up;
+                case Direction.Right:
+                    return transform.position + Vector3.right + Vector3.up;
+                default:
+                    return transform.position;
+            }
+        }
+    }
 
+    public BulletType currentBulletType
+    {
+        get { return _bulletType; }
+        set
+        {
+            if (_bulletType != value)
+            {
+                _bulletType = value;
+                Debug.Log($"{_bulletType} Equipped!!");
+            }
+        }
+    }
+
+    public int IsShootUpDown
+    {
+        get { return _isShoorUpDown; }
+        set
+        {
+            _isShoorUpDown = (value > 0 ? 1 : -1);
+        }
+    }
 
 
     [Header("Character Stats")]
     [SerializeField] private int _hp = 100;
     [SerializeField] private int _maxHp = 100;
     [SerializeField] private float _shootCancelDelay = 0.1f;
-    [SerializeField] private int _maxBulletCnt = 200;
+    [SerializeField] private int _maxBulletCnt = 300;
     [SerializeField] private int _bulletCnt = -1;
-    public BulletType _firemArm = BulletType.Pistol;
+    [SerializeField] private BulletType _bulletType = BulletType.Pistol;
+    [SerializeField] private int _maxGrenadeCnt = 100;
+    [SerializeField] private int _grenadeCnt = 0;
+    [SerializeField] private GrenadeType _grenadeType = GrenadeType.None;
 
     [Header("Character Ability")]
     [Range(0, 10)]
@@ -70,17 +111,50 @@ public class CharacterBase : ObjectBase , IPunObservable
     [SerializeField] private float _runSpeed = 0;
     [Range(0, 15)]
     [SerializeField] private float _jumpPower = 0;
+    [Range(0, 1)]
+    [SerializeField] private float _canShortJumpTime;
+    [Range(0, 10)]
+    [SerializeField] private float _forceToBlockJump;
 
     [Header("Character Condition")]
     [SerializeField] private bool _isJump = false;
     [SerializeField] private bool _isShoot = false;
     [SerializeField] private bool _isStopJump = false;
     [SerializeField] private bool _isOnGround = false;
-    [Range(0, 1)]
-    [SerializeField] private float _canShortJumpTime;
-    [Range(0, 10)]
-    [SerializeField] private float _forceToBlockJump;
     [SerializeField] private float _onJumpTime = 0f;
+    [SerializeField] private float _currentShootDelay = 0f;
+    [SerializeField] private float _currentThrowDelay = 0f;
+    public float CurrentShootDelay
+    {
+        get { return _currentShootDelay; }
+        set
+        {
+            if (value > 0)
+            {
+                _currentShootDelay = value;
+            }
+            else
+            {
+                _currentShootDelay = 0;
+            }
+        }
+    }
+
+    public float CurrentThrowDelay
+    {
+        get { return _currentThrowDelay; }
+        set
+        {
+            if (value > 0)
+            {
+                _currentThrowDelay = value;
+            }
+            else
+            {
+                _currentThrowDelay = 0;
+            }
+        }
+    }
 
     public int HP
     {
@@ -96,6 +170,10 @@ public class CharacterBase : ObjectBase , IPunObservable
                 _hp = 0;
                 Die();
             }
+            else if(value < _hp)
+            {
+                Damaged(_hp - value);
+            }
             else
             {
                 _hp = value;
@@ -106,13 +184,33 @@ public class CharacterBase : ObjectBase , IPunObservable
     public int BulletCnt
     {
         get { return _bulletCnt; }
-        set 
+        set
         {
             if (value > _maxBulletCnt)
             {
                 value = _maxBulletCnt;
             }
-            _bulletCnt = value; 
+            else if(value <= 0)
+            {
+                value = -1;
+            }
+            _bulletCnt = value;
+        }
+    }
+    public int GrenadeCnt
+    {
+        get { return _grenadeCnt; }
+        set
+        {
+            if (value > _maxGrenadeCnt)
+            {
+                value = _maxGrenadeCnt;
+            }
+            else if(value < 0)
+            {
+                value = 0;
+            }
+            _grenadeCnt = value;
         }
     }
     public Direction direction
@@ -128,10 +226,21 @@ public class CharacterBase : ObjectBase , IPunObservable
         }
 
         Move(ref inputController._horizontal, ref inputController._walk);
+        CurrentShootDelay -= Time.deltaTime;
+        CurrentThrowDelay -= Time.deltaTime;
+        if (_isJump && !_isStopJump)
+        {
+            _onJumpTime += Time.deltaTime;
+        }
     }
 
     private void Update()
     {
+        if (!_photonView.IsMine)
+        {
+            return;
+        }
+
         if (_isOnGround)
         {
             Turn(ref inputController._horizontal);
@@ -141,6 +250,7 @@ public class CharacterBase : ObjectBase , IPunObservable
             }
         }
         TryShoot();
+        TryThrowGrenade();
         AllJump();
     }
 
@@ -169,7 +279,10 @@ public class CharacterBase : ObjectBase , IPunObservable
         Vector2 preLocalScale = transform.localScale;
         if (horizontalInput != 0)
         {
-            preLocalScale.x = (horizontalInput > 0 ? 1 : -1);
+            if((horizontalInput > 0) != (preLocalScale.x > 0))
+            {
+                preLocalScale.x = (horizontalInput > 0 ? 1 : -1);
+            }
         }
         transform.localScale = preLocalScale;
     }
@@ -222,12 +335,9 @@ public class CharacterBase : ObjectBase , IPunObservable
 
     #region Shoot Part
 
-    private float _shootOffset;
-    private float _shootDelay = 0f;
-    private int _shootUpOrDown = 1;
     private void TryShoot()
     {
-        if (gameManager._bulletStorage[_firemArm].Count == 0)
+        if (gameManager._bulletStorage[_bulletType].Count == 0)
         {
             Debug.LogError("There is no bullets!!");
             return;
@@ -240,53 +350,84 @@ public class CharacterBase : ObjectBase , IPunObservable
         else if (inputController._shootUp)
         {
             _isShoot = false;
-            if (_shootDelay > _shootCancelDelay)
+            if (CurrentShootDelay > _shootCancelDelay)
             {
-                _shootDelay = _shootCancelDelay;
+                CurrentShootDelay = _shootCancelDelay;
             }
         }
 
         if (_isShoot)
         {
-            if (_shootDelay <= 0)
-            {
-                Shoot();
-            }
+            Shoot();
         }
-        _shootDelay -= Time.deltaTime;
     }
 
+    private int _isShoorUpDown = 1;
     private void Shoot()
     {
-        if (_bulletCnt > 0)
+        if (CurrentShootDelay > 0)
         {
-            _bulletCnt--;
+            return;
         }
-        _shootUpOrDown = -_shootUpOrDown;
-        _shootOffset = gameManager._bulletStorage[_firemArm][0]._shootPosOffset;
-        gameManager._bulletStorage[_firemArm][0]._locationStatus = _locationStatus;
-        gameManager._bulletStorage[_firemArm][0].Shoot(_shootPos + _shootUpOrDown * Vector3.up * _shootOffset, direction);
-        _shootDelay = gameManager._bulletStorage[_firemArm][0]._shootDelayTime;
-        if (_bulletCnt == 0)
+        BulletCnt--;
+        gameManager._bulletStorage[_bulletType][0].Shoot(this);
+        if (BulletCnt < 0)
         {
-            _bulletCnt = -1;
-            if (_firemArm != BulletType.Pistol)
-            {
-                _firemArm = BulletType.Pistol;
-            }
+            BackToDefaultWeapon();
+        }
+    }
+
+    private void BackToDefaultWeapon()
+    {
+        if (_bulletType != BulletType.Pistol)
+        {
+            _bulletType = BulletType.Pistol;
         }
     }
 
     #endregion
+
+    #region Throw Grenade
+
+    private void TryThrowGrenade()
+    {
+        if (inputController._grenadeDown)
+        {
+            if (_grenadeType == GrenadeType.None)
+            {
+                Debug.LogError("There is no Grenade!!");
+                return;
+            }
+            ThrowGrenade();
+        }
+    }
+
+    private void ThrowGrenade()
+    {
+        if (CurrentThrowDelay > 0)
+        {
+            return;
+        }
+        GrenadeCnt--;
+        gameManager._grenadeStorage[_grenadeType][0].Throw(this);
+    }
+
+    #endregion
+
 
     #region Special Event
     private void Die()
     {
 
     }
+
+    private void Damaged(int damageValue)
+    {
+
+    }
+
+
     #endregion
-
-
 
 
     #region Intellgience Function

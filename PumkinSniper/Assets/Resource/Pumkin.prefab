@@ -62,18 +62,24 @@ MonoBehaviour:
   _hp: 100
   _maxHp: 100
   _shootCancelDelay: 0.1
-  _bulletsCnt: -1
-  m_firemArm: 0
+  _maxBulletCnt: 300
+  _bulletCnt: -1
+  _bulletType: 0
+  _maxGrenadeCnt: 100
+  _grenadeCnt: 0
+  _grenadeType: 0
   _walkSpeed: 3
   _runSpeed: 7
   _jumpPower: 12
+  _canShortJumpTime: 0.4
+  _forceToBlockJump: 7
   _isJump: 0
   _isShoot: 0
   _isStopJump: 0
   _isOnGround: 0
-  _canShortJumpTime: 0.2
-  _forceToBlockJump: 7
   _onJumpTime: 0
+  _currentShootDelay: 0
+  _currentThrowDelay: 0
 --- !u!212 &233482903312871840
 SpriteRenderer:
   m_ObjectHideFlags: 0

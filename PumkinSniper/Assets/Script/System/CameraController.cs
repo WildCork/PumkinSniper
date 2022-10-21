@@ -5,7 +5,10 @@ using static GameManager;
 
 public class CameraController : MonoBehaviour
 {
-    private CharacterBase _character;
+    private CharacterBase _character
+    {
+        get { return gameManager._character; }
+    }
     private Camera _camera;
 
     [SerializeField] private float _cameraSize;
@@ -18,9 +21,7 @@ public class CameraController : MonoBehaviour
     void Start()
     {
         _camera = GetComponent<Camera>();
-
         _camera.orthographicSize = _cameraSize;
-        _character = gameManager._character;
     }
 
 

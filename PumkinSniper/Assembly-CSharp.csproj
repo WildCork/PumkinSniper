@@ -67,7 +67,8 @@
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\EventSystemSpawner.cs" />
     <Compile Include="Assets\Script\System\CameraController.cs" />
     <Compile Include="Assets\Script\ObjectBase.cs" />
-    <Compile Include="Assets\Script\Weapon\MeleeBase.cs" />
+    <Compile Include="Assets\Script\Item.cs" />
+    <Compile Include="Assets\Script\Weapon\Grenade.cs" />
     <Compile Include="Assets\Photon\PhotonLibs\WebSocket\WebSocket.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\TextButtonTransition.cs" />
     <Compile Include="Assets\Script\System\GameManager.cs" />
@@ -82,7 +83,6 @@
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\OnStartDelete.cs" />
     <Compile Include="Assets\Script\DetectGround.cs" />
     <Compile Include="Assets\Script\Weapon\Bullet.cs" />
-    <Compile Include="Assets\Script\Item.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Photon\PhotonLibs\netstandard2.0\Photon3Unity3D.xml" />

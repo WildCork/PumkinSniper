@@ -7,7 +7,7 @@ public class InputController : MonoBehaviour
 {
     public static InputController inputController = null;
 
-    private void Awake()
+    private void Start()
     {
         if (inputController)
         {

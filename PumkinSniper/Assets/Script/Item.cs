@@ -6,7 +6,7 @@ using static Bullet;
 
 public class Item : ObjectBase
 {
-    private enum ItemType { Bullet, Health }
+    private enum ItemType { Bullet, Health, Grenade }
     private enum SizeType { Small, Large }
 
     [SerializeField] private ItemType _itemType = ItemType.Bullet;
@@ -30,6 +30,8 @@ public class Item : ObjectBase
                     break;
                 case ItemType.Health:
                     Heal(_character);
+                    break;
+                case ItemType.Grenade:
                     break;
                 default:
                     break;
@@ -76,7 +78,7 @@ public class Item : ObjectBase
             default:
                 break;
         }
-        if (character._firemArm == _bulletKind)
+        if (character.currentBulletType == _bulletKind)
         {
             switch (_sizeType)
             {
@@ -93,7 +95,7 @@ public class Item : ObjectBase
         }
         else
         {
-            character._firemArm = _bulletKind;
+            character.currentBulletType = _bulletKind;
             character.BulletCnt = bulletCnt;
         }
     }

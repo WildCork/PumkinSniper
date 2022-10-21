@@ -8,7 +8,7 @@ using static GameManager;
 public class Bullet : ObjectBase
 {
     public enum BulletType { Pistol, Machinegun, Shotgun }
-    public BulletType _bulletKind = BulletType.Pistol;
+    public BulletType _bulletType = BulletType.Pistol;
     [Header("Time")]
     public float _shootDelayTime;
     public float _maxLifeTime;
@@ -47,17 +47,22 @@ public class Bullet : ObjectBase
 
     public override void OnDisable()
     {
-        transform.position = gameManager._storageTransform[_bulletKind].position;
+        transform.position = gameManager._bulletStorageTransform[_bulletType];
         _triggerWallSet.Clear();
-        gameManager._bulletStorage[_bulletKind].Add(this);
+        gameManager._bulletStorage[_bulletType].Add(this);
         base.OnDisable();
     }
-    public void Shoot(Vector3 shootPos, Direction direction)
+    public void Shoot(CharacterBase character)
     {
-        gameManager._bulletStorage[_bulletKind].RemoveAt(0);
+        gameManager._bulletStorage[_bulletType].RemoveAt(0);
+
+        character.CurrentShootDelay = _shootDelayTime;
+        character.IsShootUpDown *= -1;
+
         gameObject.SetActive(true);
-        transform.position = shootPos;
-        switch (direction)
+        _locationStatus = character._locationStatus;
+        transform.position = character.ShootPos + character.IsShootUpDown * Vector3.up * _shootPosOffset;
+        switch (character.direction)
         {
             case Direction.Left:
                 _rigidbody2D.velocity = Vector2.left * _shotSpeed;

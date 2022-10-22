@@ -87,6 +87,7 @@ public class ObjectBase : MonoBehaviourPunCallbacks
 
     private Vector2 doorDir; //From Out To In
     private float _dotValue;
+    private ObjectBase _object;
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.layer == gameManager._doorLayer && _triggerWallSet.Count == 0)
@@ -115,17 +116,21 @@ public class ObjectBase : MonoBehaviourPunCallbacks
             }
         }
 
-        Hit(collision);
+        if (_object = collision.GetComponent<ObjectBase>())
+        {
+            if (_object._locationStatus == LocationStatus.Door)
+            {
+                Hit(collision);
+            }
+            else if (_object._locationStatus == _locationStatus)
+            {
+                Hit(collision);
+            }
+        }
 
-        if (collision.gameObject.layer == gameManager._wallLayer)
-        {
-            _triggerWallSet.Add(collision);
-        }
-        else if (collision.gameObject.layer == gameManager._inLayer)
-        {
-            _triggerMapSet.Add(collision);
-        }
-        else if (collision.gameObject.layer == gameManager._outLayer)
+        if (collision.gameObject.layer == gameManager._wallLayer
+            || collision.gameObject.layer == gameManager._inLayer
+            || collision.gameObject.layer == gameManager._outLayer)
         {
             _triggerMapSet.Add(collision);
         }
@@ -159,15 +164,9 @@ public class ObjectBase : MonoBehaviourPunCallbacks
             }
         }
         
-        if (collision.gameObject.layer == gameManager._wallLayer)
-        {
-            _triggerWallSet.Remove(collision);
-        }
-        else if (collision.gameObject.layer == gameManager._inLayer)
-        {
-            _triggerMapSet.Remove(collision);
-        }
-        else if (collision.gameObject.layer == gameManager._outLayer)
+        if (collision.gameObject.layer == gameManager._wallLayer
+            || collision.gameObject.layer == gameManager._inLayer
+            || collision.gameObject.layer == gameManager._outLayer)
         {
             _triggerMapSet.Remove(collision);
         }

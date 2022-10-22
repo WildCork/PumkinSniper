@@ -395,7 +395,6 @@ public class CharacterBase : ObjectBase , IPunObservable
         {
             if (_grenadeType == GrenadeType.None)
             {
-                Debug.LogError("There is no Grenade!!");
                 return;
             }
             ThrowGrenade();

@@ -39,7 +39,6 @@ public class Bullet : ObjectBase
     public override void OnEnable()
     {
         base.OnEnable();
-        _collider2D.isTrigger = true;
         _isRebound = false;
         _rigidbody2D.drag = 0;
         _rigidbody2D.gravityScale = 0f;
@@ -50,6 +49,7 @@ public class Bullet : ObjectBase
         transform.position = gameManager._bulletStorageTransform[_bulletType];
         _triggerWallSet.Clear();
         gameManager._bulletStorage[_bulletType].Add(this);
+        _rigidbody2D.gravityScale = 0f;
         base.OnDisable();
     }
     public void Shoot(CharacterBase character)
@@ -114,7 +114,7 @@ public class Bullet : ObjectBase
             case LocationStatus.Door:
                 if (collision.gameObject.layer == gameManager._wallLayer)
                 {
-                    ReboundFromWall(collision);
+                    Rebound(collision);
                 }
                 else if (collision.gameObject.layer == gameManager._inLayer)
                 {
@@ -134,19 +134,19 @@ public class Bullet : ObjectBase
                 }
                 break;
             default:
-                if (!_isRebound && collision.gameObject.layer == gameManager._playerLayer)
-                {
-                    _targetCharacter = collision.gameObject.GetComponent<CharacterBase>();
-                    if (_targetCharacter._locationStatus == LocationStatus.Door)
-                    {
-                        HitCharacter(_targetCharacter);
-                    }
-                    else if(_targetCharacter._locationStatus == _locationStatus)
-                    {
-                        HitCharacter(_targetCharacter);
-                    }
-                }
                 break;
+        }
+        if (!_isRebound && collision.gameObject.layer == gameManager._playerLayer)
+        {
+            _targetCharacter = collision.gameObject.GetComponent<CharacterBase>();
+            if (_targetCharacter._locationStatus == LocationStatus.Door)
+            {
+                HitCharacter(_targetCharacter);
+            }
+            else if (_targetCharacter._locationStatus == _locationStatus)
+            {
+                HitCharacter(_targetCharacter);
+            }
         }
     }
 
@@ -157,7 +157,7 @@ public class Bullet : ObjectBase
 
     [SerializeField] private ContactPoint2D[] contacts = new ContactPoint2D[10];
     private Vector2 reboundVec = Vector2.zero;
-    private void ReboundFromWall(Collider2D collision)
+    private void Rebound(Collider2D collision)
     {
         _isRebound = true;
         collision.GetContacts(contacts);

@@ -82,6 +82,7 @@ public class GameManager : MonoBehaviour
         {
             bullet._bulletType = bulletType;
             _bulletStorage[bulletType].Add(bullet);
+            bullet.gameObject.SetActive(false);
         }
 
         if (bullets[0]._maxLifeTime / bullets[0]._shootDelayTime > bullets.Length)
@@ -100,6 +101,7 @@ public class GameManager : MonoBehaviour
         {
             grenade._grenadeType = grenadeType;
             _grenadeStorage[grenadeType].Add(grenade);
+            grenade.gameObject.SetActive(false);
         }
     }
     public void RenewMap()
